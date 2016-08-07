@@ -3,28 +3,151 @@
 # Unique Combinations python app
 # This application find the unique combinations of X pieces on a M x N chessboard
 #
-# 0 - free to use
-# 1 - threat zone
-# Unicode - piece placed
-#
 # Author: William Oliveira de Lagos <william.lagos@outlook.com>
 #
 
 import os
 import sys
+import json
 import logging
 import argparse
 import itertools
 
-movements = {
-    # 'P': (0, 1, 2, 3, 4, 5, 6, 7),
-    # 'P': (N, E, S, W,NE,SE,SW,NW),
-    'K':(1,1,1,1,1,1,1,1),
-    'Q':(2,2,2,2,2,2,2,2),
-    'R':(2,2,2,2,0,0,0,0),
-    'B':(0,0,0,0,2,2,2,2),
-    'N':(0,0,0,0,0,0,0,0),
-}
+# 0,1,2,3,4,5,6,7 are constants to North,East,South,West,
+# Northeast,Southeast,South-west and Northwest, respectively.
+
+N = 0
+E = 1
+S = 2
+W = 3
+NE = 4
+SE = 5
+SW = 6
+NW = 7
+
+# 0 - free to use
+# 1 - threat zone
+# Unicode - piece placed
+
+FREE = 0
+THREAT = 1
+
+def check_nzone(direction,adjacencies,board,x,y):
+    """
+    Verify the threat zone for knight special squares
+    for a given piece and a given direction (N,E,S,W,NE,SE,SW,NW).
+
+    Keyword arguments:
+
+    direction -- Direction of the check (N,E,S,W,NE,SE,SW,NW)
+    adjacencies -- List with available adjacencies
+    board -- Matrix main chessboard
+    x -- X position of the piece
+    y -- Y position of the piece
+    """
+
+    px = py = 0
+    # North knight direction
+    if direction is N:
+        px = x - 2; py = y - 1
+    # East knight direction
+    elif direction is E:
+        px = x + 1; py = y - 2
+    # South knight direction
+    elif direction is S:
+        px = x - 2; py = y + 1
+    # West knight direction
+    elif direction is W:
+        px = x - 1; py = y - 2
+    # Northeast knight direction
+    elif direction is NE:
+        px = x + 1; py = y + 2
+    # Southeast knight direction
+    elif direction is SE:
+        px = x + 2; py = y + 1
+    # Southwest knight direction
+    elif direction is SW:
+        px = x - 1; py = y + 2
+    # Northwest knight direction
+    elif direction is NW:
+        px = x + 2; py = y - 1
+    if board[px][py] != FREE: return True
+    else:
+        adjacencies.append((px,py))
+        return False
+
+def check_dzone(direction,adjacencies,squares1,squares2,board,x,y):
+    """
+    Verify the threat zone for diagonal 1 - n squares
+    for a given piece and a given direction (N,E,S,W).
+
+    Keyword arguments:
+
+    direction -- Direction of the check (N,E,S,W)
+    adjacencies -- List with available adjacencies
+    squares1 -- Number of squares to be verified on X coordinate
+    squares2 -- Number of squares to be verified on Y coordinate
+    board -- Matrix main chessboard
+    x -- X position of the piece
+    y -- Y position of the piece
+    """
+
+    px = py = 0
+    # if squares is 1, it'll iterate just one time (K movement)
+    for s1,s2 in zip(range(squares1),range(squares2)):
+        # Northeast direction
+        if direction is NE:
+            px = x - (1 * s1)
+            py = y + (1 * s2)
+        # Southeast direction
+        elif direction is SE:
+            px = x + (1 * s1)
+            py = y + (1 * s2)
+        # South-west direction
+        elif direction is SW:
+            px = x + (1 * s1)
+            py = y - (1 * s2)
+        # Northwest direction
+        elif direction is NW:
+            px = x - (1 * s1)
+            py = y - (1 * s2)
+        if board[px][py] != FREE: return True
+        else: adjacencies.append((px,py))
+    return False
+
+def check_zone(direction,adjacencies,squares,board,x,y):
+    """
+    Verify the threat zone for horizontal and vertical 1 - n squares
+    for a given piece and a given direction (N,E,S,W).
+
+    Keyword arguments:
+
+    direction -- Direction of the check (N,E,S,W)
+    adjacencies -- List with available adjacencies
+    squares -- Number of squares to be verified
+    board -- Matrix main chessboard
+    x -- X position of the piece
+    y -- Y position of the piece
+    """
+
+    px = py = 0
+    # if squares is 1, it'll iterate just one time (K movement)
+    for s in range(squares):
+        # North direction
+        if direction is N:
+            px = x - (1 * s); py = y
+        # East direction
+        elif direction is E:
+            px = x; py = y + (1 * s)
+        # South direction
+        elif direction is S:
+            px = x + (1 * s); py = y
+        # West direction
+        elif direction is W:
+            px = x; py = y - (1 * s)
+        if board[px][py] != FREE: return True
+        else: adjacencies.append((px,py))
+    return False
 
 def verify_adjacents(t,board,x,y):
     """
@@ -41,128 +164,71 @@ def verify_adjacents(t,board,x,y):
 
     both = px = py = d = 0
     max_x = max_y = len(board)
-    available,adjacencies,available_directions = [],[],[]
+    adj,zone,available_zone = [],[],[]
     # It doesn't need to verify the upper or down directions if we are on extremity
-    if y == 0: available = [3,6,2,5,1]
-    elif y == max_y: available = [3,7,0,4,1]
+    if y == 0: zone = [3,6,2,5,1]
+    elif y == max_y: zone = [3,7,0,4,1]
     # If the square is in the middle, all the vertical adjacencies will be checked
     else:
-        available = [3,6,7,0,2,4,5,1]
+        zone = [3,6,7,0,2,4,5,1]
         both += 1
 
     # Verify if the square isn't on the horizontal extremities
-    if x == 0: available_directions = available[2 + both:]
-    elif x == max_x: available_directions = available[:-2 - both]
+    if x == 0: available_zone = zone[2 + both:]
+    elif x == max_x: available_zone = zone[:-2 - both]
 
-    squares = (1,1,1,1)
+    # A fixed dict with the movements of each piece are stored in a file called unique.json.
+    f = open('unique.json','r')
+    movements = json.load(f)
     directions = movements[t]
 
     # Special adjacencies for the knight movement
     if sum(directions) == 0:
-        # Special extremities for the knight
-        px = py = 0
-        w_knight = x >= 2
-        n_knight = y >= 2
-        e_knight = (max_x - x) >= 2
-        s_knight = (max_y - y) >= 2
+        # North direction adjacencies with special extemities
+        if N in available_zone and x >= 2:
+            if check_nzone(N,adj,board,x,y): return []
+        if S in available_zone and x >= 2:
+            if check_nzone(S,adj,board,x,y): return []
+        if W in available_zone and y >= 2:
+            if check_nzone(W,adj,board,x,y): return []
+        if E in available_zone and y >= 2:
+            if check_nzone(E,adj,board,x,y): return []
 
-        has_north = 0 in available_directions
-        has_south = 2 in available_directions
-        has_west = 3 in available_directions
-        has_east = 1 in available_directions
-
-        # North direction adjacencies
-        if w_knight and has_north:
-            px = x - 2; py = y - 1
-            if board[px][py] > 0: return []
-            else: adjacencies.append((px,py))
-        if n_knight and has_west:
-            px = x - 1; py = y - 2
-            if board[x-1][y-2] > 0: return []
-            else: adjacencies.append((px,py))
-        if w_knight and has_south:
-            px = x - 2; py = y + 1
-            if board[x-2][y+1] > 0: return []
-            else: adjacencies.append((px,py))
-        if n_knight and has_east:
-            px = x + 1; py = y - 2
-            if board[px][py] > 0: return []
-            else: adjacencies.append((px,py))
-
-        # South directions adjacencies
-        if s_knight and has_west:
-            px = x - 1; py = y + 2
-            if board[px][py] > 0: return []
-            else: adjacencies.append((px,py))
-        if e_knight and has_south:
-            px = x + 2; py = y + 1
-            if board[px][py] > 0: return []
-            else: adjacencies.append((px,py))
-        if s_knight and has_east:
-            px = x + 1; py = y + 2
-            if board[px][py] > 0: return []
-            else: adjacencies.append((px,py))
-        if e_knight and has_north:
-            px = x + 2; py = y - 1
-            if board[px][py] > 0: return []
-            else: adjacencies.append((px,py))
+        # South directions adjacencies with special extremities
+        if W in available_zone and (max_y - y) >= 2:
+            if check_nzone(SW,adj,board,x,y): return []
+        if E in available_zone and (max_y - y) >= 2:
+            if check_nzone(NE,adj,board,x,y): return []
+        if S in available_zone and (max_x - x) >= 2:
+            if check_nzone(SE,adj,board,x,y): return []
+        if N in available_zone and (max_x - x) >= 2:
+            if check_nzone(NW,adj,board,x,y): return []
 
     # Iterate over the available directions and verify if it's viable to put the piece in this position
-    while d < len(available_directions):
+    sq = (1,1,1,1)
+    for d,available in enumerate(available_zone):
+        # Verify if this piece can go this direction
         if directions[d] == 0: return
         # Verify if the directions of this piece are just one square per time or the entire row/column
-        if directions[d] > 1: squares = y - 1, x - 1, max_y - y, max_x - x
-        # North direction adjacencies
-        if available_directions[d] == 0:
-            for s in range(squares[0]):
-                py = y; px = x - (1 * s)
-                if board[px][py] > 0: return []
-                else: adjacencies.append((px,py))
-        # East direction adjacencies
-        elif available_directions[d] == 1:
-            for s in range(squares[1]):
-                px = x; py = y + (1 * s)
-                if board[px][py] > 0: return []
-                else: adjacencies.append((px,py))
-        # South direction adjacencies
-        elif available_directions[d] == 2:
-            for s in range(squares[2]):
-                py = y; px = x + (1 * s)
-                if board[px][py] > 0: return []
-                else: adjacencies.append((px,py))
-        # West direction adjacencies
-        elif available_directions[d] == 3:
-            for s in range(squares[3]):
-                px = x; py = y - (1 * s)
-                if board[px][py] > 0: return []
-                else: adjacencies.append((px,py))
-        # North-east direction adjacencies
-        elif available_directions[d] == 4:
-            for s1,s2 in zip(range(squares[0]),range(squares[1])):
-                px = x - (1 * s1); py = y + (1 * s2)
-                if board[px][py] > 0: return []
-                else: adjacencies.append((px,py))
-        # South-east direction adjacencies
-        elif available_directions[d] == 5:
-            for s1,s2 in zip(range(squares[2]),range(squares[1])):
-                px = x + (1 * s1); py = y + (1 * s2)
-                if board[px][py] > 0: return []
-                else: adjacencies.append((px,py))
-        # South-west direction adjacencies
-        elif available_directions[d] == 6:
-            for s1,s2 in zip(range(squares[2]),range(squares[3])):
-                px = x + (1 * s1); py = y - (1 * s2)
-                if board[px][py] > 0: return []
-                else: adjacencies.append((px,py))
-        # North-west direction adjacencies
-        elif available_directions[d] == 7:
-            for s1,s2 in zip(range(squares[2]),range(squares[3])):
-                px = x - (1 * s1); py = y - (1 * s2)
-                if board[px][py] > 0: return []
-                else: adjacencies.append((px,py))
-        d += 1
-    return adjacencies
-
+        if directions[d] > 1: sq = y - 1, x - 1, max_y - y, max_x - x
+        # Verify all the possible direction adjacencies
+        if available is N:
+            if check_zone(N,adj,sq[0],board,x,y): return []
+        elif available is E:
+            if check_zone(E,adj,sq[1],board,x,y): return []
+        elif available is S:
+            if check_zone(S,adj,sq[2],board,x,y): return []
+        elif available is W:
+            if check_zone(W,adj,sq[3],board,x,y): return []
+        elif available is NE:
+            if check_dzone(NE,adj,sq[0],sq[1],board,x,y): return []
+        elif available is SE:
+            if check_dzone(SE,adj,sq[2],sq[1],board,x,y): return []
+        elif available is SW:
+            if check_dzone(SW,adj,sq[2],sq[3],board,x,y): return []
+        elif available is NW:
+            if check_dzone(NW,adj,sq[2],sq[3],board,x,y): return []
+    return adj
 
 def unique_configuration(sequence,board):
     """
@@ -187,7 +253,7 @@ def unique_configuration(sequence,board):
                 # Verify if the adjacencies of the position are available
                 adjacencies = verify_adjacents(p,board,x,y)
                 if not adjacencies: continue
-                # print(adjacencies)
+                print(x,y,p,adjacencies)
 
     # If not, the function returns its recursive call
     else: return
