@@ -395,6 +395,7 @@ def possible_ordered_sequences(pieces):
     Keyword arguments:
 
     pieces -- The pieces dictionary with the quantity of each piece.
+
     """
 
     sequence, sequences = [], []
