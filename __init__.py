@@ -1,0 +1,1 @@
+""" Chess package of modules """
