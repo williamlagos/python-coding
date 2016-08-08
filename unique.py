@@ -47,6 +47,7 @@ def check_nzone(direction,adjacencies,board,x,y):
     """
 
     px = py = 0
+    logging.debug("Checking knight zone on direction %s in position (%d,%d)" % (direction,x,y))
     # North knight direction
     if direction is N:
         px = x - 2; py = y - 1
@@ -74,6 +75,7 @@ def check_nzone(direction,adjacencies,board,x,y):
     if board[px][py] != FREE: return True
     else:
         adjacencies.append((px,py))
+        logging.debug("Added (%d,%d) as a valid adjacency for the piece in (%d,%d)" % (px,py,x,y))
         return False
 
 def check_dzone(direction,adjacencies,squares1,squares2,board,x,y):
@@ -93,6 +95,8 @@ def check_dzone(direction,adjacencies,squares1,squares2,board,x,y):
     """
 
     px = py = 0
+    logging.debug("Checking diagonal zone on direction %s in position (%d,%d)" % (direction,x,y))
+    logging.debug("Number of squares to be checked: X:%d Y:%d" % (squares1,squares2))
     # if squares is 1, it'll iterate just one time (K movement)
     for s1,s2 in zip(range(squares1),range(squares2)):
         # Northeast direction
@@ -112,7 +116,9 @@ def check_dzone(direction,adjacencies,squares1,squares2,board,x,y):
             px = x - (1 * s1)
             py = y - (1 * s2)
         if board[px][py] != FREE: return True
-        else: adjacencies.append((px,py))
+        else:
+            adjacencies.append((px,py))
+            logging.debug("Added (%d,%d) as a valid adjacency for the piece in (%d,%d)" % (px,py,x,y))
     return False
 
 def check_zone(direction,adjacencies,squares,board,x,y):
@@ -131,6 +137,8 @@ def check_zone(direction,adjacencies,squares,board,x,y):
     """
 
     px = py = 0
+    logging.debug("Checking zone on direction %s in position (%d,%d)" % (direction,x,y))
+    logging.debug("Number of squares to be checked: %d" % (squares))
     # if squares is 1, it'll iterate just one time (K movement)
     for s in range(squares):
         # North direction
@@ -146,7 +154,9 @@ def check_zone(direction,adjacencies,squares,board,x,y):
         elif direction is W:
             px = x; py = y - (1 * s)
         if board[px][py] != FREE: return True
-        else: adjacencies.append((px,py))
+        else:
+            adjacencies.append((px,py))
+            logging.debug("Added (%d,%d) as a valid adjacency for the piece in (%d,%d)" % (px,py,x,y))
     return False
 
 def verify_adjacents(t,board,x,y):
@@ -176,14 +186,17 @@ def verify_adjacents(t,board,x,y):
     # Verify if the square isn't on the horizontal extremities
     if x == 0: available_zone = zone[2 + both:]
     elif x == max_x: available_zone = zone[:-2 - both]
+    logging.debug("Verified existing limits on board and possible directions: %s" % available_zone)
 
     # A fixed dict with the movements of each piece are stored in a file called unique.json.
     f = open('unique.json','r')
     movements = json.load(f)
     directions = movements[t]
+    logging.debug("Checked possible movements of piece of type %s: %s" % (t,directions))
 
     # Special adjacencies for the knight movement
     if sum(directions) == 0:
+        logging.debug("Knight type movement detected, proceding to special limits")
         # North direction adjacencies with special extemities
         if N in available_zone and x >= 2:
             if check_nzone(N,adj,board,x,y): return []
@@ -207,10 +220,12 @@ def verify_adjacents(t,board,x,y):
     # Iterate over the available directions and verify if it's viable to put the piece in this position
     sq = (1,1,1,1)
     for d,available in enumerate(available_zone):
+        logging.debug("Normal type movement detected, proceding to normal limits")
         # Verify if this piece can go this direction
         if directions[d] == 0: return
         # Verify if the directions of this piece are just one square per time or the entire row/column
         if directions[d] > 1: sq = y - 1, x - 1, max_y - y, max_x - x
+        else: logging.debug("King type movement detected, proceding to unary limits")
         # Verify all the possible direction adjacencies
         if available is N:
             if check_zone(N,adj,sq[0],board,x,y): return []
@@ -228,7 +243,31 @@ def verify_adjacents(t,board,x,y):
             if check_dzone(SW,adj,sq[2],sq[3],board,x,y): return []
         elif available is NW:
             if check_dzone(NW,adj,sq[2],sq[3],board,x,y): return []
+
+    # If the function didn't return until this point, it's possible to put the piece in x,y coordinate
+    logging.debug("All adjancencies are valid, proceding to deliver to unique_configuration()")
     return adj
+
+def put_piece(adjacencies,p,board,x,y):
+    """
+    Put the given piece in the board with its adjacencies included.
+
+    Keyword arguments:
+
+    adjacencies -- List of adjacencies of the piece
+    p -- The letter of the piece that will be inserted
+    board -- Main matrix chessboard to be manipulated
+    x -- X position of the given piece
+    y -- Y position of the given piece
+    """
+    logging.debug("Board before insertion of %s in (%d,%d): %s" % (p,x,y,board))
+    # Put the piece with the unicode representation on board
+    board[x][y] = ord(p)
+
+    logging.debug("List of adjacencies of %s for (%d,%d): %s" % (p,x,y,adjacencies))
+    # Insert all the adjacencies related to the piece
+    for x,y in adjacencies: board[x][y] = THREAT
+    logging.debug("Board after insertion of %s in (%d,%d): %s" % (p,x,y,board))
 
 def unique_configuration(sequence,board):
     """
@@ -253,12 +292,12 @@ def unique_configuration(sequence,board):
                 # Verify if the adjacencies of the position are available
                 adjacencies = verify_adjacents(p,board,x,y)
                 if not adjacencies: continue
-                print(x,y,p,adjacencies)
+                logging.debug("Putting piece %s on board" % p)
+                put_piece(adjacencies,p,board,x,y)
 
     # If not, the function returns its recursive call
     else: return
     unique_configuration(sequence[1:],board)
-
 
 def possible_ordered_sequences(pieces):
     """
@@ -322,6 +361,8 @@ def main():
     # Generate the board matrix with zeros and call recursive function for unique configurations
     board = [[0] * m for i in itertools.repeat(None, m)]
     for sequence in permutations: unique_configuration(sequence,board)
+
+    # print(board)
 
 if __name__ == "__main__":
     try:
