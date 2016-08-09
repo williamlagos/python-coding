@@ -8,7 +8,7 @@
 
 import logging
 import itertools
-# import pieces
+import pieces
 
 # Position tuple codes
 X = 0
@@ -20,7 +20,7 @@ Y = 1
 FREE = 0
 THREAT = 1
 
-def verify_boundaries(typ, board, pos_x, pos_y):
+def prepare_boundaries(board, pos_x, pos_y):
     """
 
     Verify the boundaries of the square that the
@@ -28,17 +28,15 @@ def verify_boundaries(typ, board, pos_x, pos_y):
 
     Keyword arguments:
 
-    typ -- Type of the chess piece
     board -- The chessboard matrix with integer codes
     pos_x -- X position on the chessboard to put the piece
     pos_y -- Y position on the chessboard to put the piece
 
     """
 
-    logging.debug("Verifiying boundaries for the piece %s", typ)
     both = 0
     ext = (len(board[0]), len(board))
-    adj, zone, available_zone = [], [], []
+    zone, boundaries = [], []
     # It doesn't need to verify the upper or down directions if we are on extremity
     if pos_y == 0:
         zone = [3, 6, 2, 5, 1]
@@ -51,12 +49,12 @@ def verify_boundaries(typ, board, pos_x, pos_y):
 
     # Verify if the square isn't on the horizontal extremities
     if pos_x == 0:
-        available_zone = zone[2 + both:]
+        boundaries = zone[2 + both:]
     elif pos_x == ext[X]:
-        available_zone = zone[:-2 - both]
+        boundaries = zone[:-2 - both]
     else:
-        available_zone = zone
-    logging.debug("Verified existing boundaries on board: %s", available_zone)
+        boundaries = zone
+    logging.debug("Verified existing boundaries on board: %s", boundaries)
 
     # A fixed dict with the movements of each piece are stored in a file called movements.json.
     # cfg = open('movements.json', 'r')
@@ -74,33 +72,33 @@ def verify_boundaries(typ, board, pos_x, pos_y):
     #         return []
     # If the function didn't return until this point,
     # it's possible to put the piece in x, y coordinate
-    logging.debug("Valid adjacencies found: %s", adj)
-    logging.info("All adjacencies are valid, proceding to deliver it")
-    return adj
+    # logging.debug("Valid adjacencies found: %s", adj)
+    # logging.info("All adjacencies are valid, proceding to deliver it")
+    return boundaries
 
-def put_piece(adjacencies, piece, board, pos_x, pos_y):
+def put_piece(piece, board, pos_x, pos_y):
     """
 
     Put the given piece in the board with its adjacencies included.
 
     Keyword arguments:
 
-    adjacencies -- List of adjacencies of the piece
-    piece -- The letter of the piece that will be inserted
+    piece -- Piece object that will be inserted
     board -- Main matrix chessboard to be manipulated
     x -- X position of the given piece
     y -- Y position of the given piece
 
     """
-    logging.debug("Board before insertion of %s in (%d, %d): %s", piece, pos_x, pos_y, board)
+    logging.debug("Board before insertion of %s in (%d, %d): %s", piece.letter, pos_x, pos_y, board)
     # Put the piece with the unicode representation on board
     board[pos_x][pos_y] = ord(piece)
 
-    logging.debug("List of adjacencies of %s for (%d, %d): %s", piece, pos_x, pos_y, adjacencies)
+    logging.debug("List of adjacencies of %s for (%d, %d): %s",
+                  piece.letter, pos_x, pos_y, piece.adjacencies)
     # Insert all the adjacencies related to the piece
-    for pos_x, pos_y in adjacencies:
+    for pos_x, pos_y in piece.adjacencies:
         board[pos_x][pos_y] = THREAT
-    logging.debug("Board after insertion of %s in (%d, %d): %s", piece, pos_x, pos_y, board)
+    logging.debug("Board after insertion of %s in (%d, %d): %s", piece.letter, pos_x, pos_y, board)
 
 def unique_configuration(sequence, board):
     """
@@ -116,21 +114,22 @@ def unique_configuration(sequence, board):
 
     """
 
-    adjacencies = []
     # Verify if there is more piece to put in the board
     logging.debug("Working with sequence %s", sequence)
     for piece in sequence:
+        man = pieces.PieceFactory.generate_piece(piece)
         for pos_y, row in enumerate(board):
             for pos_x, square in enumerate(row):
                 # Verify if the position has threat or piece placed
                 if square != 0:
                     continue
+                logging.debug("Preparing boundaries for the piece %s", piece)
+                boundaries = prepare_boundaries(board, pos_x, pos_y)
                 # Verify if the adjacencies of the position are available
-                adjacencies = verify_boundaries(piece, board, pos_x, pos_y)
-                if not adjacencies:
+                if not man.check_adj(boundaries, board, pos_x, pos_y):
                     continue
                 logging.debug("Putting piece %s on board", piece)
-                put_piece(adjacencies, piece, board, pos_x, pos_y)
+                put_piece(man, board, pos_x, pos_y)
 
 def possible_ordered_sequences(piece_dict):
     """
