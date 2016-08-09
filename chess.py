@@ -21,8 +21,8 @@ def main():
     """
 
     # Configures the logging processor for information
-    #logging.basicConfig(filename='chess.log', level=logging.DEBUG)
-    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    logging.basicConfig(filename='chess.log', level=logging.DEBUG)
+    # logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
     # Configures the argument parser for the input
     parser = argparse.ArgumentParser(

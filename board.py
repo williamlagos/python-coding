@@ -10,10 +10,6 @@ import logging
 import itertools
 import pieces
 
-# Position tuple codes
-X = 0
-Y = 1
-
 # 0 - free to use
 # 1 - threat zone
 # Unicode - piece placed
@@ -34,26 +30,42 @@ def prepare_boundaries(board, pos_x, pos_y):
 
     """
 
-    both = 0
-    ext = (len(board[0]), len(board))
-    zone, boundaries = [], []
-    # It doesn't need to verify the upper or down directions if we are on extremity
-    if pos_y == 0:
-        zone = [3, 6, 2, 5, 1]
-    elif pos_y == ext[Y]:
-        zone = [3, 7, 0, 4, 1]
-    # If the square is in the middle, all the vertical adjacencies will be checked
-    else:
-        zone = [3, 6, 7, 0, 2, 4, 5, 1]
-        both += 1
+    ext_x, ext_y = (len(board[0]) - 1, len(board) - 1)
 
-    # Verify if the square isn't on the horizontal extremities
+    # Boundaries relation
+    # N  E  S  W  NE SE SW NW
+    # 0  1  2  3  4  5  6  7
+    boundaries = [0, 1, 2, 3, 4, 5, 6, 7]
+    # It doesn't need to verify the upper or down directions if we are on extremity
+
     if pos_x == 0:
-        boundaries = zone[2 + both:]
-    elif pos_x == ext[X]:
-        boundaries = zone[:-2 - both]
-    else:
-        boundaries = zone
+        # Corner upper left
+        if pos_y == 0:
+            boundaries = [1, 2, 5]
+        # Corner down left
+        elif pos_y == ext_y:
+            boundaries = [0, 1, 4]
+        # Between corners left
+        else:
+            boundaries = [0, 1, 2, 4, 5]
+    elif pos_x == ext_x:
+        # Corner upper right
+        if pos_y == 0:
+            boundaries = [2, 3, 6]
+        # Corner down right
+        elif pos_x == ext_x:
+            boundaries = [0, 3, 7]
+        # Between corners right
+        else:
+            boundaries = [0, 2, 3, 6, 7]
+    elif pos_y == 0:
+        # Upper between corners
+        boundaries = [1, 2, 3, 5, 6]
+    elif pos_y == ext_y:
+        # Down between corners
+        boundaries = [0, 1, 3, 4, 7]
+
+    # If the square is in the middle, all the vertical adjacencies will be checked
     logging.debug("Verified existing boundaries on board: %s", boundaries)
 
     return boundaries
@@ -78,7 +90,8 @@ def put_piece(piece, board, pos_x, pos_y):
     logging.debug("List of adjacencies of %s for (%d, %d): %s",
                   piece.letter, pos_x, pos_y, piece.adjacencies)
     # Insert all the adjacencies related to the piece
-    for adj_x, adj_y in piece.adjacencies:
+    for _, adj in piece.adjacencies.items():
+        adj_x, adj_y = adj
         board[adj_x][adj_y] = THREAT
     logging.debug("Board after insertion of %s in (%d, %d): %s", piece.letter, pos_x, pos_y, board)
 
@@ -104,6 +117,7 @@ def unique_configuration(sequence, board):
         for pos_y, row in enumerate(board):
             for pos_x, square in enumerate(row):
                 # Verify if the position has threat or piece placed
+                logging.debug("Starting to check piece %s in position (%d,%d)", piece, pos_x, pos_y)
                 if square != 0:
                     continue
                 logging.debug("Preparing boundaries for the piece %s", piece)
