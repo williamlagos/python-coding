@@ -11,6 +11,7 @@ import logging
 import itertools
 import zones
 
+# boundaries
 def verify_adjacents(typ, board, pos_x, pos_y):
     """
 
@@ -26,6 +27,7 @@ def verify_adjacents(typ, board, pos_x, pos_y):
 
     """
 
+    logging.debug("Verifiying adjacencies for the piece %s", typ)
     both = 0
     ext = (len(board[0]), len(board))
     adj, zone, available_zone = [], [], []
@@ -44,6 +46,8 @@ def verify_adjacents(typ, board, pos_x, pos_y):
         available_zone = zone[2 + both:]
     elif pos_x == ext[zones.X]:
         available_zone = zone[:-2 - both]
+    else:
+        available_zone = zone
     logging.debug("Verified existing limits on board and possible directions: %s", available_zone)
 
     # A fixed dict with the movements of each piece are stored in a file called movements.json.
@@ -53,16 +57,17 @@ def verify_adjacents(typ, board, pos_x, pos_y):
 
     # Special adjacencies for the knight movement
     if sum(movements[typ]) == 0:
-        logging.debug("Knight type movement detected, proceding to special limits")
+        logging.info("Knight type movement detected, proceding to special limits")
         if zones.check_knight_adjacencies(available_zone, adj, board, (pos_x, pos_y)):
             return []
     else:
-        logging.debug("Normal type movement detected, proceding to normal limits")
+        logging.info("Normal type movement detected, proceding to normal limits")
         if zones.check_adjacencies(available_zone, movements[typ], adj, board, (pos_x, pos_y)):
             return []
     # If the function didn't return until this point,
     # it's possible to put the piece in x, y coordinate
-    logging.debug("All adjacencies are valid, proceding to deliver to unique_configuration()")
+    logging.debug("Valid adjacencies found: %s", adj)
+    logging.info("All adjacencies are valid, proceding to deliver to unique_configuration()")
     return adj
 
 def put_piece(adjacencies, piece, board, pos_x, pos_y):
@@ -105,8 +110,8 @@ def unique_configuration(sequence, board):
 
     adjacencies = []
     # Verify if there is more piece to put in the board
-    if len(sequence) > 0:
-        piece = sequence[0]
+    logging.debug("Working with sequence %s", sequence)
+    for piece in sequence:
         for pos_y, row in enumerate(board):
             for pos_x, square in enumerate(row):
                 # Verify if the position has threat or piece placed
@@ -118,11 +123,6 @@ def unique_configuration(sequence, board):
                     continue
                 logging.debug("Putting piece %s on board", piece)
                 put_piece(adjacencies, piece, board, pos_x, pos_y)
-
-    # If not, the function returns its recursive call
-    else:
-        return
-    unique_configuration(sequence[1:], board)
 
 def possible_ordered_sequences(pieces):
     """

@@ -22,6 +22,7 @@ def main():
 
     # Configures the logging processor for information
     logging.basicConfig(filename='chess.log', level=logging.DEBUG)
+    #logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
     # Configures the argument parser for the input
     parser = argparse.ArgumentParser(
@@ -64,7 +65,7 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except SystemExit, err:
+    except SystemExit as err:
         # This log will include content written in sys.exit
         logging.exception("Unique has failed with exception")
         logging.error(str(err))

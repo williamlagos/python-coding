@@ -3,6 +3,7 @@
 # Unique Combinations python app
 # Author: William Oliveira de Lagos <william.lagos@outlook.com>
 #
+# Deprecated module
 
 """" Zones module with adjacencies handling """
 
@@ -167,8 +168,10 @@ def check_zone(direction, adjacencies, squares, board, pos):
             adj_y = pos[Y] + (1 * sqr)
         # South direction
         elif direction is S:
+            logging.info("Got south direction")
             adj_x = pos[X] + (1 * sqr)
             adj_y = pos[Y]
+            logging.debug("(%d,%d)", adj_x, adj_y)
         # West direction
         elif direction is W:
             adj_x = pos[X]
@@ -208,7 +211,8 @@ def check_adjacencies(zone, directions, adj, board, pos):
         # Verify if the directions of this piece are just one
         # square per time or the entire row/column
         if directions[drc] > 1:
-            sqr = pos[Y] - 1, pos[X] - 1, ext[Y] - pos[Y], ext[X] - pos[X]
+            logging.debug("Movement with %d squares, proceding to board limits", directions[drc])
+            sqr = pos[Y] - 1, pos[X] - 1, (ext[Y] - pos[Y]) - 1, (ext[X] - pos[X]) - 1
         else:
             logging.debug("King type movement detected, proceding to unary limits")
         # Verify all the possible direction adjacencies
@@ -228,7 +232,7 @@ def check_adjacencies(zone, directions, adj, board, pos):
             is_adjacency_occupied = True
         elif available is NW and check_dzone(NW, adj, (sqr[2], sqr[3]), board, pos):
             is_adjacency_occupied = True
-        return is_adjacency_occupied
+    return is_adjacency_occupied
 
 
 def check_knight_adjacencies(zone, adj, board, pos):
