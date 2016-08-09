@@ -56,11 +56,12 @@ def main():
     logging.info("Sequence of possible permutations: %s", permutations)
 
     # Generate the board matrix with zeros and call recursive function for unique configurations
+    configurations = []
     matrix = [[0] * col for _ in itertools.repeat(None, row)]
     for sequence in permutations:
-        board.unique_configuration(sequence, matrix)
-
-    # print(board)
+        if board.unique_configuration(sequence, matrix):
+            configurations.append(matrix)
+            # print(matrix)
 
 if __name__ == "__main__":
     try:

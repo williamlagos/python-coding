@@ -114,6 +114,7 @@ def unique_configuration(sequence, board):
 
     """
 
+    pieces_placed = 0
     # Verify if there is more piece to put in the board
     logging.debug("Working with sequence %s", sequence)
     for piece in sequence:
@@ -125,11 +126,16 @@ def unique_configuration(sequence, board):
                     continue
                 logging.debug("Preparing boundaries for the piece %s", piece)
                 boundaries = prepare_boundaries(board, pos_x, pos_y)
+                man.prepare_adj(board, pos_x, pos_y)
                 # Verify if the adjacencies of the position are available
                 if not man.check_adj(boundaries, board, pos_x, pos_y):
                     continue
                 logging.debug("Putting piece %s on board", piece)
                 put_piece(man, board, pos_x, pos_y)
+                pieces_placed += 1
+    # Verify if all the pieces were placed on chessboard
+    return pieces_placed == len(sequence)
+
 
 def possible_ordered_sequences(piece_dict):
     """
