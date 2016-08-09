@@ -73,13 +73,13 @@ def put_piece(piece, board, pos_x, pos_y):
     """
     logging.debug("Board before insertion of %s in (%d, %d): %s", piece.letter, pos_x, pos_y, board)
     # Put the piece with the unicode representation on board
-    board[pos_x][pos_y] = ord(piece)
+    board[pos_x][pos_y] = ord(str(piece))
 
     logging.debug("List of adjacencies of %s for (%d, %d): %s",
                   piece.letter, pos_x, pos_y, piece.adjacencies)
     # Insert all the adjacencies related to the piece
-    for pos_x, pos_y in piece.adjacencies:
-        board[pos_x][pos_y] = THREAT
+    for adj_x, adj_y in piece.adjacencies:
+        board[adj_x][adj_y] = THREAT
     logging.debug("Board after insertion of %s in (%d, %d): %s", piece.letter, pos_x, pos_y, board)
 
 def unique_configuration(sequence, board):
@@ -99,8 +99,8 @@ def unique_configuration(sequence, board):
     pieces_placed = 0
     # Verify if there is more piece to put in the board
     logging.debug("Working with sequence %s", sequence)
-    for piece in sequence:
-        man = pieces.PieceFactory.generate_piece(piece)
+    chess_pieces = pieces.PieceFactory.generate_pieces(sequence)
+    for piece in chess_pieces:
         for pos_y, row in enumerate(board):
             for pos_x, square in enumerate(row):
                 # Verify if the position has threat or piece placed
@@ -108,12 +108,12 @@ def unique_configuration(sequence, board):
                     continue
                 logging.debug("Preparing boundaries for the piece %s", piece)
                 boundaries = prepare_boundaries(board, pos_x, pos_y)
-                man.prepare_adj(board, pos_x, pos_y)
+                piece.prepare_adj(board, pos_x, pos_y)
                 # Verify if the adjacencies of the position are available
-                if not man.check_adj(boundaries, board, pos_x, pos_y):
+                if piece.check_adj(boundaries, board, pos_x, pos_y):
                     continue
                 logging.debug("Putting piece %s on board", piece)
-                put_piece(man, board, pos_x, pos_y)
+                put_piece(piece, board, pos_x, pos_y)
                 pieces_placed += 1
     # Verify if all the pieces were placed on chessboard
     return pieces_placed == len(sequence)

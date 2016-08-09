@@ -34,11 +34,14 @@ class Piece(object):
         """ Check adjacencies base method """
         pass
 
+    def __str__(self):
+        return self.letter
+
 class SquarePiece(Piece):
     """ Piece with n squares movement base class """
     def __init__(self, letter, movement=[0 for _ in range(8)]):
-        Piece.__init__(letter, movement)
-        self.square_adjacencies = [_ for _ in range(8)]
+        Piece.__init__(self, letter, movement)
+        self.square_adjacencies = [[] for _ in range(8)]
         self.square_relations = []
 
     def check_zone(self, direction, board, pos):
@@ -57,9 +60,10 @@ class SquarePiece(Piece):
         """
 
         adjacencies = self.square_adjacencies[direction]
-        logging.debug("Checking zone on direction %s in position (%s)", direction, pos)
+        logging.debug("Checking zone %s on direction %s in (%s)", adjacencies, direction, pos)
         for adj in adjacencies:
             adj_x, adj_y = adj
+            logging.debug("Checking (%d, %d) as a valid adjacency", adj_x, adj_y)
             if board[adj_x][adj_y] != 0:
                 return True
             logging.debug("Checked (%d, %d) as a valid adjacency for the piece in (%s)",
@@ -68,6 +72,7 @@ class SquarePiece(Piece):
 
     def append_adj(self, direction, position):
         """ Append adjacencies to squares and the main list """
+        logging.debug("Adding square adjacencies in direction %d: %s", direction, position)
         self.square_adjacencies[direction].append(position)
         self.adjacencies.append(position)
 
@@ -117,13 +122,15 @@ class King(Piece):
     """ King piece class """
 
     def __init__(self):
-        Piece.__init__('K', [1, 1, 1, 1, 1, 1, 1, 1])
+        Piece.__init__(self, 'K', [1, 1, 1, 1, 1, 1, 1, 1])
 
     def check_zone(self, direction, board, pos):
         """ Check king piece zone method """
 
         adj_x, adj_y = self.adjacencies[direction]
+        logging.debug("Board to be verified: %s", board)
         if board[adj_x][adj_y] != 0:
+            logging.debug("(%d, %d) is not a valid adjacency, zone checked.", adj_x, adj_y)
             return True
         logging.debug("Added (%d, %d) as a valid adjacency for the piece in (%s)",
                       adj_x, adj_y, pos)
@@ -175,7 +182,7 @@ class King(Piece):
 class Queen(SquarePiece):
     """ Queen piece class """
     def __init__(self):
-        SquarePiece.__init__('Q', [2, 2, 2, 2, 2, 2, 2, 2])
+        SquarePiece.__init__(self, 'Q', [2, 2, 2, 2, 2, 2, 2, 2])
 
     def prepare_squares(self, squares):
         """ Prepare the relation of squares """
@@ -191,13 +198,15 @@ class Queen(SquarePiece):
     def prepare_adj(self, board, pos_x, pos_y, sqt=(1, 0, 0)):
         # Adjacency parameters for the queen piece
         squares, squares_x, squares_y = sqt
-
-        for sqr in range(squares):
+        logging.debug("Number of squares for Queen in (%d,%d): %d", pos_x, pos_y, squares)
+        for sqr in range(1, squares + 1):
             self.append_adj(self.NORTH, (pos_x - (1 * sqr), pos_y)) # North
             self.append_adj(self.SOUTH, (pos_x + (1 * sqr), pos_y)) # South
             self.append_adj(self.EAST, (pos_x, pos_y + (1 * sqr))) # East
             self.append_adj(self.WEST, (pos_x, pos_y - (1 * sqr))) # West
-        for sqr1, sqr2 in zip(range(squares_x), range(squares_y)):
+        logging.debug("Number of squares for Bishop in (%d,%d): %s; %s",
+                      pos_x, pos_y, squares_x, squares_y)
+        for sqr1, sqr2 in zip(range(1, squares_x + 1), range(1, squares_y + 1)):
             self.append_adj(self.NORTHEAST, (pos_x - (1 * sqr1), pos_y + (1 * sqr2))) # Northeast
             self.append_adj(self.SOUTHEAST, (pos_x + (1 * sqr1), pos_y + (1 * sqr2))) # Southeast
             self.append_adj(self.SOUTHWEST, (pos_x + (1 * sqr1), pos_y - (1 * sqr2))) # Southwest
@@ -207,7 +216,7 @@ class Bishop(SquarePiece):
     """ Bishop piece class """
 
     def __init__(self):
-        SquarePiece.__init__('B', [0, 0, 0, 0, 2, 2, 2, 2])
+        SquarePiece.__init__(self, 'B', [0, 0, 0, 0, 2, 2, 2, 2])
 
     def prepare_squares(self, squares):
         """ Prepare the relation of squares """
@@ -223,8 +232,9 @@ class Bishop(SquarePiece):
     def prepare_adj(self, board, pos_x, pos_y, sqt=(0, 0)):
         # Adjacency parameters for the queen piece
         squares_x, squares_y = sqt
-
-        for sqr1, sqr2 in zip(range(squares_x), range(squares_y)):
+        logging.debug("Number of squares for Bishop in (%d,%d): %s; %s",
+                      pos_x, pos_y, squares_x, squares_y)
+        for sqr1, sqr2 in zip(range(1, squares_x + 1), range(1, squares_y + 1)):
             self.append_adj(self.NORTHEAST, (pos_x - (1 * sqr1), pos_y + (1 * sqr2))) # Northeast
             self.append_adj(self.SOUTHEAST, (pos_x + (1 * sqr1), pos_y + (1 * sqr2))) # Southeast
             self.append_adj(self.SOUTHWEST, (pos_x + (1 * sqr1), pos_y - (1 * sqr2))) # Southwest
@@ -234,7 +244,7 @@ class Rook(SquarePiece):
     """ Rook piece class """
 
     def __init__(self):
-        SquarePiece.__init__('R', [2, 2, 2, 2, 0, 0, 0, 0])
+        SquarePiece.__init__(self, 'R', [2, 2, 2, 2, 0, 0, 0, 0])
 
     def prepare_squares(self, squares):
         """ Prepare the relation of squares """
@@ -250,8 +260,8 @@ class Rook(SquarePiece):
     def prepare_adj(self, board, pos_x, pos_y, sqt=1):
         # Adjacency parameters for the rook piece
         squares = sqt
-
-        for sqr in range(squares):
+        logging.debug("Number of squares for Rook in (%d,%d): %d", pos_x, pos_y, squares)
+        for sqr in range(squares - 1):
             self.append_adj(self.NORTH, (pos_x - (1 * sqr), pos_y)) # North
             self.append_adj(self.SOUTH, (pos_x + (1 * sqr), pos_y)) # South
             self.append_adj(self.EAST, (pos_x, pos_y + (1 * sqr))) # East
@@ -261,7 +271,7 @@ class Knight(SquarePiece):
     """ Knight piece class """
 
     def __init__(self):
-        SquarePiece.__init__('N')
+        SquarePiece.__init__(self, 'N')
 
     def append_adj(self, direction, position):
         """ Append adjacencies to squares and the main list """
@@ -269,6 +279,7 @@ class Knight(SquarePiece):
         self.adjacencies.append(position)
 
     def prepare_adj(self, board, pos_x, pos_y, sqt=0):
+        logging.debug("Preparing adjacencies of Knight in (%d,%d)", pos_x, pos_y)
         self.append_adj(self.NORTH, (pos_x - 2, pos_y - 1)) # North
         self.append_adj(self.SOUTH, (pos_x - 2, pos_y + 1)) # South
         self.append_adj(self.EAST, (pos_x + 1, pos_y - 2)) # East
@@ -322,8 +333,10 @@ class PieceFactory(object):
     @staticmethod
     def generate_pieces(types):
         """ Factory method for a list of chessboard pieces """
+        pieces = []
         for typ in types:
-            PieceFactory.generate_piece(typ)
+            pieces.append(PieceFactory.generate_piece(typ))
+        return pieces
 
     @staticmethod
     def generate_piece(typ):
