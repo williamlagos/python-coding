@@ -10,7 +10,7 @@ import sys
 import logging
 import argparse
 import itertools
-import unique
+import board
 
 def main():
     """
@@ -52,13 +52,13 @@ def main():
     logging.info("Chessboard dimensions - Rows: %d Columns: %d", row, col)
 
     # Generate a list of possible alternative of ordered pieces
-    permutations = unique.possible_ordered_sequences(pieces)
+    permutations = board.possible_ordered_sequences(pieces)
     logging.info("Sequence of possible permutations: %s", permutations)
 
     # Generate the board matrix with zeros and call recursive function for unique configurations
-    board = [[0] * col for _ in itertools.repeat(None, row)]
+    matrix = [[0] * col for _ in itertools.repeat(None, row)]
     for sequence in permutations:
-        unique.unique_configuration(sequence, board)
+        board.unique_configuration(sequence, matrix)
 
     # print(board)
 
