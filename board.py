@@ -53,7 +53,7 @@ def prepare_boundaries(board, pos_x, pos_y):
         if pos_y == 0:
             boundaries = [2, 3, 6]
         # Corner down right
-        elif pos_x == ext_x:
+        elif pos_y == ext_y:
             boundaries = [0, 3, 7]
         # Between corners right
         else:
@@ -70,7 +70,7 @@ def prepare_boundaries(board, pos_x, pos_y):
 
     return boundaries
 
-def put_piece(piece, board, pos_x, pos_y):
+def insert_piece(piece, board, pos_x, pos_y):
     """
 
     Put the given piece in the board with its adjacencies included.
@@ -122,12 +122,11 @@ def unique_configuration(sequence, board):
                     continue
                 logging.debug("Preparing boundaries for the piece %s", piece)
                 boundaries = prepare_boundaries(board, pos_x, pos_y)
-                piece.prepare_adj(board, pos_x, pos_y)
                 # Verify if the adjacencies of the position are available
                 if piece.check_adj(boundaries, board, pos_x, pos_y):
                     continue
                 logging.debug("Putting piece %s on board", piece)
-                put_piece(piece, board, pos_x, pos_y)
+                insert_piece(piece, board, pos_x, pos_y)
                 pieces_placed += 1
     # Verify if all the pieces were placed on chessboard
     return pieces_placed == len(sequence)

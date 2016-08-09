@@ -3,14 +3,10 @@
 # Unique Combinations python app
 # Author: William Oliveira de Lagos <william.lagos@outlook.com>
 #
-# Deprecated module
 
 """" Pieces module with adjacencies handling """
 
 import logging
-
-X = 0
-Y = 1
 
 class Piece(object):
     """
