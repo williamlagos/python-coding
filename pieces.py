@@ -12,12 +12,31 @@ import logging
 X = 0
 Y = 1
 
-class Piece:
+# A fixed dict with the movements of each piece are stored in a file called movements.json.
+# cfg = open('movements.json', 'r')
+# movements = json.load(cfg)
+# logging.debug("Checked possible movements of piece of type %s: %s", typ, movements[typ])
+#
+# # Special adjacencies for the knight movement
+# if sum(movements[typ]) == 0:
+#     logging.info("Knight type movement detected, proceding to special limits")
+#     if pieces.check_knight_adjacencies(available_zone, adj, board, (pos_x, pos_y)):
+#         return []
+# else:
+#     logging.info("Normal type movement detected, proceding to normal limits")
+#     if pieces.check_adjacencies(available_zone, movements[typ], adj, board, (pos_x, pos_y)):
+#         return []
+# If the function didn't return until this point,
+# it's possible to put the piece in x, y coordinate
+# logging.debug("Valid adjacencies found: %s", adj)
+# logging.info("All adjacencies are valid, proceding to deliver it")
+
+class Piece(object):
     """ Base piece class """
     # 0, 1, 2, 3, 4, 5, 6, 7 are constants to North, East, South, West,
     # Northeast, Southeast, South-west and Northwest, respectively.
     NORTH, EAST, SOUTH, WEST, NORTHEAST, SOUTHEAST, SOUTHWEST, NORTHWEST = [x for x in range(8)]
-    def __init__(self, let, mov=[0 for x in range(8)]):
+    def __init__(self, let, mov=[0 for _ in range(8)]):
         self.movements = mov
         self.adjacencies = []
         self.letter = let
@@ -119,7 +138,8 @@ class Queen(Piece):
             if board[adj_x][adj_y] != 0:
                 return True
             local_adjacencies.append((adj_x, adj_y))
-            logging.debug("Added (%d, %d) as a valid adjacency for the piece in (%s)", adj_x, adj_y, pos)
+            logging.debug("Added (%d, %d) as a valid adjacency for the piece in (%s)",
+                          adj_x, adj_y, pos)
         self.adjacencies = local_adjacencies
         return False
 
@@ -127,17 +147,22 @@ class Queen(Piece):
     def prepare_adj(self, board, pos_x, pos_y, sqt=(1, 1, 1)):
         # Adjacency parameters for the king piece
         squares, squares_x, squares_y = sqt
-        for _ in range(8): self.adjacencies.append([])
+        for _ in range(8):
+            self.adjacencies.append([])
         for sqr in range(squares):
             self.adjacencies[self.NORTH].append((pos_x - (1 * sqr), pos_y)) # North
             self.adjacencies[self.SOUTH].append((pos_x + (1 * sqr), pos_y)) # South
             self.adjacencies[self.EAST].append((pos_x, pos_y + (1 * sqr))) # East
             self.adjacencies[self.WEST].append((pos_x, pos_y - (1 * sqr))) # West
         for sqr1, sqr2 in zip(range(squares_x), range(squares_y)):
-            self.adjacencies[self.NORTHEAST].append((pos_x - (1 * sqr1), pos_y + (1 * sqr2))) # Northeast
-            self.adjacencies[self.SOUTHEAST].append((pos_x + (1 * sqr1), pos_y + (1 * sqr2))) # Southeast
-            self.adjacencies[self.SOUTHWEST].append((pos_x + (1 * sqr1), pos_y - (1 * sqr2))) # Southwest
-            self.adjacencies[self.NORTHWEST].append((pos_x - (1 * sqr1), pos_y - (1 * sqr2))) # Northwest
+            self.adjacencies[self.NORTHEAST].append( # Northeast
+                (pos_x - (1 * sqr1), pos_y + (1 * sqr2)))
+            self.adjacencies[self.SOUTHEAST].append( # Southeast
+                (pos_x + (1 * sqr1), pos_y + (1 * sqr2)))
+            self.adjacencies[self.SOUTHWEST].append( # Southwest
+                (pos_x + (1 * sqr1), pos_y - (1 * sqr2)))
+            self.adjacencies[self.NORTHWEST].append( # Northwest
+                (pos_x - (1 * sqr1), pos_y - (1 * sqr2)))
 
     def check_adj(self, boundaries, board, pos_x, pos_y):
         """
@@ -194,7 +219,7 @@ class Queen(Piece):
             # elif (available is self.NORTHWEST and
             #       self.check_dzone(self.NORTHWEST, adj, (sqr[2], sqr[3]), board, pos)):
             #     is_adjacency_occupied = True
-        return is_adjacency_occupied
+        return is_occupied
 
 class Bishop(Piece):
     """ Bishop piece class """
@@ -421,8 +446,14 @@ class Knight(Piece):
 
         return is_adjacency_occupied
 
-class PieceFactory:
+class PieceFactory(object):
     """ Piece Factory pattern class """
+    @staticmethod
+    def generate_pieces(types):
+        """ Factory method for a list of chessboard pieces """
+        for typ in types:
+            PieceFactory.generate_piece(typ)
+
     @staticmethod
     def generate_piece(typ):
         """ Factory method for chessboard pieces """

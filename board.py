@@ -56,24 +56,6 @@ def prepare_boundaries(board, pos_x, pos_y):
         boundaries = zone
     logging.debug("Verified existing boundaries on board: %s", boundaries)
 
-    # A fixed dict with the movements of each piece are stored in a file called movements.json.
-    # cfg = open('movements.json', 'r')
-    # movements = json.load(cfg)
-    # logging.debug("Checked possible movements of piece of type %s: %s", typ, movements[typ])
-    #
-    # # Special adjacencies for the knight movement
-    # if sum(movements[typ]) == 0:
-    #     logging.info("Knight type movement detected, proceding to special limits")
-    #     if pieces.check_knight_adjacencies(available_zone, adj, board, (pos_x, pos_y)):
-    #         return []
-    # else:
-    #     logging.info("Normal type movement detected, proceding to normal limits")
-    #     if pieces.check_adjacencies(available_zone, movements[typ], adj, board, (pos_x, pos_y)):
-    #         return []
-    # If the function didn't return until this point,
-    # it's possible to put the piece in x, y coordinate
-    # logging.debug("Valid adjacencies found: %s", adj)
-    # logging.info("All adjacencies are valid, proceding to deliver it")
     return boundaries
 
 def put_piece(piece, board, pos_x, pos_y):
