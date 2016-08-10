@@ -108,7 +108,17 @@ class Board(object):
                       piece.letter, pos_x, pos_y, self.board)
 
     def insert(self, piece):
-        """Inserts a piece"""
+        """
+
+        Inserts a piece on the board. Verify adjacencies and boundaries with
+        pieces classes and, if there is a valid position, the function proceed
+        to piece insertion, in unicode character.
+
+        Keyword arguments:
+
+        piece -- Given piece instance with its properties
+
+        """
         for pos_y, row in enumerate(self.board):
             for pos_x, square in enumerate(row):
                 # Verify if the position has threat or piece placed
@@ -155,6 +165,12 @@ class Board(object):
         return pieces_inserted == len(sequence)
 
     def __str__(self):
+        """
+
+        String representation of the board. Unicode character for the piece,
+        1 for threat zone and 0 for empty zone.
+
+        """
         mat = ''
         for row in self.board:
             for squ in row:
