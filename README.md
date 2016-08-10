@@ -1,4 +1,4 @@
-# chess
+# Chess Game Challenge
 Simple chess engine written in Python with standard library. Works with Python 3.x. The execution
 is quite simple: you just have to specify the width (-m) and height (-n) of the chessboard and the
 number of pieces that you want to test:

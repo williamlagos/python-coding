@@ -17,7 +17,7 @@ class BoardApplicationTest(unittest.TestCase):
         """ Tests possible ordered sequences in permutation """
         permutations = set([('K', 'K', 'R'), ('K', 'R', 'K'), ('R', 'K', 'K')])
         result = board.possible_ordered_sequences({'K':2, 'Q':0, 'R':1, 'B':0, 'N':0})
-        self.assertEqual(permutations, result)
+        self.assertEqual(permutations, set(result))
 
     def test_boundaries(self):
         """ Tests boundaries checking """
