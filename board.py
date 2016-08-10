@@ -158,7 +158,10 @@ class Board(object):
         mat = ''
         for row in self.board:
             for squ in row:
-                mat += '%s ' % squ
+                if squ > 1:
+                    mat += '%s ' % chr(squ)
+                else:
+                    mat += '%d ' % squ
             mat += '\n'
         return mat
 
@@ -185,4 +188,4 @@ def possible_ordered_sequences(piece_dict):
 
     # Create permutations with itertools.permutations, then return a set of it
     sequences.extend(itertools.permutations(sequence))
-    return set(sequences)
+    return sequences

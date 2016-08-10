@@ -7,6 +7,7 @@
 """ Finds the unique combinations of X pieces on a M x N chessboard """
 
 import sys
+import timeit
 import logging
 import argparse
 import board
@@ -20,7 +21,7 @@ def main():
     """
 
     # Configures the logging processor for information
-    logging.basicConfig(filename='chess.log', level=logging.DEBUG, format='%(asctime)s %(message)s')
+    logging.basicConfig(filename='chess.log', level=logging.INFO, format='%(asctime)s %(message)s')
 
     # Configures the argument parser for the input
     parser = argparse.ArgumentParser(
@@ -49,6 +50,8 @@ def main():
     logging.info("Relation of pieces for the combination: %s", pieces)
     logging.info("Chessboard dimensions - Rows: %d Columns: %d", row, col)
 
+    start = timeit.default_timer()
+
     # Generate a list of possible alternative of ordered pieces
     permutations = board.possible_ordered_sequences(pieces)
     logging.info("Sequence of possible permutations: %s", permutations)
@@ -60,6 +63,9 @@ def main():
         if config.unique_configuration(sequence):
             configurations.append(config.board)
             print(config)
+
+    elapsed = timeit.default_timer() - start
+    print("Time elapsed %ss" %elapsed)
 
 if __name__ == "__main__":
     try:
