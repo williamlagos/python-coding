@@ -8,6 +8,7 @@
 
 import logging
 
+
 class Piece(object):
     """
     Base piece class for adjacencies handling. Inherited by all pieces in this app
@@ -306,23 +307,65 @@ class Queen(SquarePiece):
         movement in horizontal and vertical axis.
 
         """
+
         # Adjacency parameters for the queen piece
-        squares, squares_x, squares_y = sqt
-        logging.debug("Number of squares for Queen in (%d,%d): %d", pos_x, pos_y, squares)
-        for sqr in range(1, squares + 1):
-            self.append_adj(self.NORTH, (pos_x, pos_y - (1 * sqr))) # North
-            self.append_adj(self.SOUTH, (pos_x, pos_y + (1 * sqr))) # South
-            self.append_adj(self.EAST, (pos_x + (1 * sqr), pos_y)) # East
-            self.append_adj(self.WEST, (pos_x - (1 * sqr), pos_y)) # West
-        logging.debug("Number of squares for Bishop in (%d,%d): %s; %s",
-                      pos_x, pos_y, squares_x, squares_y)
-        for sqr1, sqr2 in zip(range(1, squares_x + 1), range(1, squares_y + 1)):
-            self.append_adj(self.NORTHEAST, (pos_x + (1 * sqr1), pos_y - (1 * sqr2))) # Northeast
-            self.append_adj(self.SOUTHEAST, (pos_x + (1 * sqr1), pos_y + (1 * sqr2))) # Southeast
-            self.append_adj(self.SOUTHWEST, (pos_x - (1 * sqr1), pos_y + (1 * sqr2))) # Southwest
-            self.append_adj(self.NORTHWEST, (pos_x - (1 * sqr1), pos_y - (1 * sqr2))) # Northwest
+        ext_x, ext_y = len(board[0]), len(board)
+        squares_north = reversed(range(pos_y - 1)) # North
+        squares_south = range(pos_y + 1, ext_y - pos_y) # South
+        squares_west = reversed(range(pos_x - 1)) # West
+        squares_east = range(pos_x + 1, ext_x - pos_x) # East
+
+        north, west, east, south = [], [], [], []
+
+        for sqr_y in squares_north:
+            north.append((pos_x, sqr_y))
+        for sqr_y in squares_south:
+            south.append((pos_y, sqr_y))
+        for sqr_x in squares_west:
+            west.append((sqr_x, pos_y))
+        for sqr_x in squares_east:
+            east.append((sqr_x, pos_y))
+
+        logging.debug("Horizontal and vertical squares for Queen in (%d,%d): %s; %s; %s; %s",
+                      pos_x, pos_y, squares_west, squares_east, squares_north, squares_south)
+
+        northeast, southeast, southwest, northwest = [], [], [], []
+
+        squares_northeast = zip(range(pos_x + 1, ext_x - pos_x),
+                                reversed(range(pos_y - 1,)))
+        squares_southeast = zip(range(pos_x + 1, ext_x - pos_x),
+                                range(pos_y + 1, ext_y - pos_y))
+        squares_southwest = zip(reversed(range(pos_x - 1)),
+                                range(pos_y + 1, ext_y - pos_y))
+        squares_northwest = zip(reversed(range(pos_x - 1)),
+                                reversed(range(pos_y - 1)))
+
+        for sqr_x, sqr_y in squares_northeast:
+            northeast.append((sqr_x, sqr_y))
+        for sqr_x, sqr_y in squares_southeast:
+            southeast.append((sqr_x, sqr_y))
+        for sqr_x, sqr_y in squares_southwest:
+            southwest.append((sqr_x, sqr_y))
+        for sqr_x, sqr_y in squares_northwest:
+            northwest.append((sqr_x, sqr_y))
+
+        logging.debug("Diagonal squares for Queen in (%d,%d): %s; %s; %s; %s", pos_x, pos_y,
+                      squares_northwest, squares_southeast, squares_northeast, squares_southwest)
+
+        adj = {}
+        adj[self.EAST] = east # East
+        adj[self.WEST] = west # West
+        adj[self.NORTH] = north # North
+        adj[self.SOUTH] = south # South
+        adj[self.NORTHEAST] = northeast # Northeast
+        adj[self.SOUTHEAST] = southeast # Southeast
+        adj[self.SOUTHWEST] = southwest # Southwest
+        adj[self.NORTHWEST] = northwest # Northwest
+
         # Filter adjacencies with available boundaries
-        self.adjacencies = [self.adjacencies[_] for _ in self.boundaries]
+        self.adjacencies = {_ : adj[_] for _ in self.boundaries}
+        logging.debug("Adjacencies relation for position (%d,%d): %s",
+                      pos_x, pos_y, self.adjacencies)
 
 class Bishop(SquarePiece):
     """
@@ -368,17 +411,41 @@ class Bishop(SquarePiece):
         movement in horizontal and vertical axis.
 
         """
-        # Adjacency parameters for the queen piece
-        squares_x, squares_y = sqt
-        logging.debug("Number of squares for Bishop in (%d,%d): %s; %s",
-                      pos_x, pos_y, squares_x, squares_y)
-        for sqr1, sqr2 in zip(range(1, squares_x + 1), range(1, squares_y + 1)):
-            self.append_adj(self.NORTHEAST, (pos_x + (1 * sqr1), pos_y - (1 * sqr2))) # Northeast
-            self.append_adj(self.SOUTHEAST, (pos_x + (1 * sqr1), pos_y + (1 * sqr2))) # Southeast
-            self.append_adj(self.SOUTHWEST, (pos_x - (1 * sqr1), pos_y + (1 * sqr2))) # Southwest
-            self.append_adj(self.NORTHWEST, (pos_x - (1 * sqr1), pos_y - (1 * sqr2))) # Northwest
+        ext_x, ext_y = len(board[0]),len(board)
+
+        northeast, southeast, southwest, northwest = [], [], [], []
+
+        squares_northeast = zip(range(pos_x + 1, ext_x - pos_x),
+                                reversed(range(pos_y - 1,)))
+        squares_southeast = zip(range(pos_x + 1, ext_x - pos_x),
+                                range(pos_y + 1, ext_y - pos_y))
+        squares_southwest = zip(reversed(range(pos_x - 1)),
+                                range(pos_y + 1, ext_y - pos_y))
+        squares_northwest = zip(reversed(range(pos_x - 1)),
+                                reversed(range(pos_y - 1)))
+
+        for sqr_x, sqr_y in squares_northeast:
+            northeast.append((sqr_x, sqr_y))
+        for sqr_x, sqr_y in squares_southeast:
+            southeast.append((sqr_x, sqr_y))
+        for sqr_x, sqr_y in squares_southwest:
+            southwest.append((sqr_x, sqr_y))
+        for sqr_x, sqr_y in squares_northwest:
+            northwest.append((sqr_x, sqr_y))
+
+        logging.debug("Diagonal squares for Bishop in (%d,%d): %s; %s; %s; %s", pos_x, pos_y,
+                      squares_northwest, squares_southeast, squares_northeast, squares_southwest)
+
+        adj = {}
+        adj[self.NORTHEAST] = northeast # Northeast
+        adj[self.SOUTHEAST] = southeast # Southeast
+        adj[self.SOUTHWEST] = southwest # Southwest
+        adj[self.NORTHWEST] = northwest # Northwest
+
         # Filter adjacencies with available boundaries
-        self.adjacencies = [self.adjacencies[_] for _ in self.boundaries]
+        self.adjacencies = {_ : adj[_] for _ in self.boundaries}
+        logging.debug("Adjacencies relation for position (%d,%d): %s",
+                      pos_x, pos_y, self.adjacencies)
 
 class Rook(SquarePiece):
     """
@@ -423,16 +490,37 @@ class Rook(SquarePiece):
         sqt -- Inherited squares configuration, used for Rook 2 - n squares movement.
 
         """
-        # Adjacency parameters for the rook piece
-        squares = sqt
-        logging.debug("Number of squares for Rook in (%d,%d): %d", pos_x, pos_y, squares)
-        for sqr in range(squares - 1):
-            self.append_adj(self.NORTH, (pos_x, pos_y - (1 * sqr))) # North
-            self.append_adj(self.SOUTH, (pos_x, pos_y + (1 * sqr))) # South
-            self.append_adj(self.EAST, (pos_x + (1 * sqr), pos_y)) # East
-            self.append_adj(self.WEST, (pos_x - (1 * sqr), pos_y)) # West
+        # Adjacency parameters for the queen piece
+        ext_x, ext_y = len(board[0]), len(board)
+        squares_north = reversed(range(pos_y - 1)) # North
+        squares_south = range(pos_y + 1, ext_y - pos_y) # South
+        squares_west = reversed(range(pos_x - 1)) # West
+        squares_east = range(pos_x + 1, ext_x - pos_x) # East
+
+        north, west, east, south = [], [], [], []
+
+        for sqr_y in squares_north:
+            north.append((pos_x, sqr_y))
+        for sqr_y in squares_south:
+            south.append((pos_y, sqr_y))
+        for sqr_x in squares_west:
+            west.append((sqr_x, pos_y))
+        for sqr_x in squares_east:
+            east.append((sqr_x, pos_y))
+
+        logging.debug("Horizontal and vertical squares for Queen in (%d,%d): %s; %s; %s; %s",
+                      pos_x, pos_y, squares_west, squares_east, squares_north, squares_south)
+
+        adj = {}
+        adj[self.EAST] = east # East
+        adj[self.WEST] = west # West
+        adj[self.NORTH] = north # North
+        adj[self.SOUTH] = south # South
+
         # Filter adjacencies with available boundaries
-        self.adjacencies = [self.adjacencies[_] for _ in self.boundaries]
+        self.adjacencies = {_ : adj[_] for _ in self.boundaries}
+        logging.debug("Adjacencies relation for position (%d,%d): %s",
+                      pos_x, pos_y, self.adjacencies)
 
 class Knight(SquarePiece):
     """
@@ -442,6 +530,7 @@ class Knight(SquarePiece):
 
     """
 
+    NORTHERN1, NORTHERN2, NORTHERN3, NORTHERN4, SOUTHERN1, SOUTHERN2, SOUTHERN3, SOUTHERN4 = [x for x in range(8)]
     def __init__(self):
         """ Initializes Knight piece class """
         SquarePiece.__init__(self, 'N')
@@ -460,16 +549,17 @@ class Knight(SquarePiece):
 
         """
         logging.debug("Preparing adjacencies of Knight in (%d,%d)", pos_x, pos_y)
-        self.append_adj(self.NORTH, (pos_x - 1, pos_y - 2)) # North
-        self.append_adj(self.SOUTH, (pos_x - 1, pos_y + 2)) # South
-        self.append_adj(self.EAST, (pos_x - 2, pos_y + 1)) # East
-        self.append_adj(self.WEST, (pos_x - 2, pos_y - 1)) # West
-        self.append_adj(self.NORTHEAST, (pos_x + 2, pos_y + 1)) # Northeast
-        self.append_adj(self.SOUTHEAST, (pos_x + 1, pos_y + 2)) # Southeast
-        self.append_adj(self.SOUTHWEST, (pos_x + 2, pos_y - 1)) # Southwest
-        self.append_adj(self.NORTHWEST, (pos_x - 1, pos_y + 2)) # Northwest
+        adj = {}
+        adj[self.NORTHERN1] = (pos_x - 1, pos_y - 2)
+        adj[self.NORTHERN2] = (pos_x - 1, pos_y + 2)
+        adj[self.NORTHERN3] = (pos_x - 2, pos_y + 1)
+        adj[self.NORTHERN4] = (pos_x - 2, pos_y - 1)
+        adj[self.SOUTHERN1] = (pos_x + 2, pos_y + 1)
+        adj[self.SOUTHERN2] = (pos_x + 1, pos_y + 2)
+        adj[self.SOUTHERN3] = (pos_x + 2, pos_y - 1)
+        adj[self.SOUTHERN4] = (pos_x - 1, pos_y + 2)
         # Filter adjacencies with available boundaries
-        self.adjacencies = [self.adjacencies[_] for _ in self.boundaries]
+        self.adjacencies = {_ : adj[_] for _ in self.boundaries}
 
     def check_adj(self, boundaries, board, pos_x, pos_y):
         """
@@ -491,23 +581,23 @@ class Knight(SquarePiece):
         is_occupied = False
         # North direction adjacencies with special extemities
         if self.NORTH in boundaries and pos_y >= 2:
-            is_occupied = self.check_zone(self.NORTH, board, pos)
+            is_occupied = self.check_zone(self.NORTHERN1, board, pos)
         if self.SOUTH in boundaries and pos_y >= 2:
-            is_occupied = self.check_zone(self.SOUTH, board, pos)
+            is_occupied = self.check_zone(self.NORTHERN2, board, pos)
         if self.WEST in boundaries and pos_x >= 2:
-            is_occupied = self.check_zone(self.WEST, board, pos)
+            is_occupied = self.check_zone(self.NORTHERN3, board, pos)
         if self.EAST in boundaries and pos_x >= 2:
-            is_occupied = self.check_zone(self.EAST, board, pos)
+            is_occupied = self.check_zone(self.NORTHERN4, board, pos)
 
         # South directions adjacencies with special extremities
         if self.WEST in boundaries and (ext_y - pos_y) >= 2:
-            is_occupied = self.check_zone(self.EAST, board, pos)
+            is_occupied = self.check_zone(self.SOUTHERN1, board, pos)
         if self.EAST in boundaries and (ext_x - pos_x) >= 2:
-            is_occupied = self.check_zone(self.NORTHEAST, board, pos)
+            is_occupied = self.check_zone(self.SOUTHERN2, board, pos)
         if self.SOUTH in boundaries and (ext_y - pos_y) >= 2:
-            is_occupied = self.check_zone(self.SOUTHEAST, board, pos)
+            is_occupied = self.check_zone(self.SOUTHERN3, board, pos)
         if self.NORTH in boundaries and (ext_x - pos_x) >= 2:
-            is_occupied = self.check_zone(self.NORTHWEST, board, pos)
+            is_occupied = self.check_zone(self.SOUTHERN4, board, pos)
 
         return is_occupied
 
