@@ -79,20 +79,49 @@ class BoardApplicationTest(unittest.TestCase):
         board.insert_piece(piece, result, 0, 0)
         self.assertEqual(matrix, result)
 
+    def test_multiple_insert(self):
+        """ Tests chessboard multiple piece insertion """
+        result = [[0] * 3 for _ in itertools.repeat(None, 3)]
+        matrix = [[75, 1, 75], [1, 1, 1], [0, 0, 0]]
+        king1 = pieces.PieceFactory.generate_piece('K')
+        king2 = pieces.PieceFactory.generate_piece('K')
+        boundaries = board.prepare_boundaries(result, 0, 0)
+        king1.check_adj(boundaries, result, 0, 0)
+        board.insert_piece(king1, result, 0, 0)
+        boundaries = board.prepare_boundaries(result, 2, 0)
+        king2.check_adj(boundaries, result, 2, 0)
+        board.insert_piece(king2, result, 2, 0)
+        self.assertEqual(matrix, result)
+
+    def test_unique_configuration(self):
+        """ Test one-time execution of unique_configuration """
+        matrix = [[0] * 3 for _ in itertools.repeat(None, 3)]
+        expected_matrix = [[75, 1, 75], [1, 1, 1], [1, 82, 1]]
+        sequence = ('K', 'K', 'R')
+        board.unique_configuration(matrix, sequence)
+        self.assertEqual(expected_matrix, matrix)
+
+
 class PiecesApplicationTest(unittest.TestCase):
     """ Class of chess main application - pieces module testing """
 
     def test_list_adjacencies(self):
         """ Tests adjacencies listing """
         adjacencies_list = []
-        expectedadj_list = []
+        expectedadj_list = [
+            {1: (1, 0), 2: (0, 1), 5: (1, 1)},
+            {1: [(1, 0), (2, 0)], 2: [(0, 1), (0, 2)], 5: [(1, 1), (2, 2)]},
+            {5: [(1, 1), (2, 2)]},
+            {1: [(1, 0), (2, 0)], 2: [(0, 1), (0, 2)]},
+            {5: (1, 2), 6: (2, 1)}
+        ]
         piece_letters = ['K', 'Q', 'B', 'R', 'N']
         matrix = [[0] * 3 for _ in itertools.repeat(None, 3)]
         chessmans = pieces.PieceFactory.generate_pieces(piece_letters)
         boundaries = board.prepare_boundaries(matrix, 0, 0)
-        # for man in chessmans:
-        #     man.check_adj(boundaries, matrix, 0, 0)
-        #     adjacencies_list.append(man.adjacencies)
+        for man in chessmans:
+            man.check_adj(boundaries, matrix, 0, 0)
+            adjacencies_list.append(man.adjacencies)
         self.assertEqual(expectedadj_list, adjacencies_list)
 
     def test_adjacencies(self):
@@ -102,7 +131,7 @@ class PiecesApplicationTest(unittest.TestCase):
         adjacencies = {1: [(1, 0), (2, 0)], 2: [(0, 1), (0, 2)], 5: [(1, 1), (2, 2)]}
         boundaries = board.prepare_boundaries(matrix, 0, 0)
         queen.boundaries = boundaries
-        queen.prepare_adj(matrix, 0, 0, (3, 3, 3))
+        queen.prepare_adj(matrix, 0, 0)
         result = queen.adjacencies
         self.assertEqual(adjacencies, result)
 

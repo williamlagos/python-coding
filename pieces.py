@@ -8,9 +8,9 @@
 
 import logging
 
-
 class Piece(object):
     """
+
     Base piece class for adjacencies handling. Inherited by all pieces in this app
 
     Attributes:
@@ -19,56 +19,62 @@ class Piece(object):
     boundaries -- List with possible adjacencies in the specific position
     adjacencies -- Dict with adjacencies in specific directions (N,E,S,W,NE,SE,SW,NW)
     letter -- Piece letter representation (K,Q,B,R,N)
+
     """
+
     # 0, 1, 2, 3, 4, 5, 6, 7 are constants to North, East, South, West,
     # Northeast, Southeast, South-west and Northwest, respectively.
     NORTH, EAST, SOUTH, WEST, NORTHEAST, SOUTHEAST, SOUTHWEST, NORTHWEST = [x for x in range(8)]
     def __init__(self, let, mov=[0 for _ in range(8)]):
         """
+
         Initializes Piece base class
 
         Keyword arguments:
 
         let -- The letter representing the piece (K,Q,B,R,N)
         mov -- List of size 8 with possible movements in any directions (N,E,S,W,NE,SE,SW,NW)
+
         """
+
         self.movements = mov
         self.adjacencies = {}
         self.boundaries = []
         self.letter = let
 
     def check_zone(self, direction, board, pos):
-        """ Check adjacency zone base method """
+        """ Check adjacency zone skeleton base method """
         pass
 
     def prepare_adj(self, board, pos_x, pos_y):
-        """ Prepare adjacencies base method """
+        """ Prepare adjacencies skeleton base method """
         pass
 
     def check_adj(self, boundaries, board, pos_x, pos_y):
-        """ Check adjacencies base method """
+        """ Check adjacencies skeleton base method """
         pass
 
     def __str__(self):
+        """ Chess piece string representation """
         return self.letter
 
 class SquarePiece(Piece):
     """
+
     Piece with n squares movement base class. It extends the base Piece class
     adding 2 - n squares movement in the adjacencies relation
 
-    Attributes:
-
-    for each direction
     """
     def __init__(self, letter, movement=[0 for _ in range(8)]):
         """
+
         Initializes Piece base class
 
         Keyword Arguments:
 
         letter -- The letter representing the piece (K,Q,B,R,N)
         movement -- List of size 8 with possible movements in any directions (N,E,S,W,NE,SE,SW,NW)
+
         """
 
         Piece.__init__(self, letter, movement)
@@ -87,13 +93,12 @@ class SquarePiece(Piece):
         pos -- Position tuple (X,Y) of the piece
 
         """
-
         adjacencies = self.adjacencies[direction]
         logging.debug("Checking zone %s on direction %s in (%s)", adjacencies, direction, pos)
         for adj in adjacencies:
             adj_x, adj_y = adj
             logging.debug("Checking (%d, %d) as a valid adjacency", adj_x, adj_y)
-            if board[adj_x][adj_y] != 0:
+            if board[adj_y][adj_x] != 0:
                 return True
             logging.debug("Checked (%d, %d) as a valid adjacency for the piece in (%s)",
                           adj_x, adj_y, pos)
@@ -116,12 +121,13 @@ class SquarePiece(Piece):
 
         pos = (pos_x, pos_y)
         is_occupied = False
-        self.boundaries = boundaries
+        # Set for only valid movement boundaries for the given piece
+        self.boundaries = [_ for _ in boundaries if self.movements[_] > 0]
         self.prepare_adj(board, pos_x, pos_y)
 
         # Iterate over the available directions and verify if it's
         # viable to put the piece in this position
-        for direction in boundaries:
+        for direction in self.boundaries:
             # Verify all the possible direction adjacencies
             is_occupied = self.check_zone(direction, board, pos)
 
@@ -130,8 +136,10 @@ class SquarePiece(Piece):
 
 class King(Piece):
     """
+
     King piece class, inherited from original Piece class, determines the possible
     movements and adjacencies of the King (K) chessboard piece.
+
     """
 
     def __init__(self):
@@ -153,9 +161,8 @@ class King(Piece):
         """
 
         adj_x, adj_y = self.adjacencies[direction]
-        logging.debug("Adjacency relation: %s", self.adjacencies)
-        logging.debug("Board to be verified on adjacency (%d,%d): %s", adj_x, adj_y, board)
-        if board[adj_x][adj_y] != 0:
+        logging.debug("Adjacency relation (%d,%d): %s", adj_x, adj_y, self.adjacencies)
+        if board[adj_y][adj_x] != 0:
             logging.debug("(%d, %d) is not a valid adjacency, zone checked.", adj_x, adj_y)
             return True
         logging.debug("Added (%d, %d) as a valid adjacency for the piece in (%s)",
@@ -172,9 +179,9 @@ class King(Piece):
         board -- Chessboard matrix
         pos_x -- X Position of the given piece
         pos_y -- Y Position of the given piece
-        sqt -- List of squares configuration tuples. Not used here
 
         """
+
         # Adjacency parameters for the king piece
         adj = {}
         adj[self.NORTH] = (pos_x, pos_y - 1) # North
@@ -222,8 +229,10 @@ class King(Piece):
 
 class Queen(SquarePiece):
     """
+
     Queen piece class, inherited from SquarePiece class, determines the possible
     movements and adjacencies of the Queen (Q) chessboard piece.
+
     """
 
     def __init__(self):
@@ -245,47 +254,38 @@ class Queen(SquarePiece):
 
         # Adjacency parameters for the queen piece
         ext_x, ext_y = len(board[0]), len(board)
-        squares_north = reversed(range(pos_y - 1)) # North
-        squares_south = range(pos_y + 1, ext_y - pos_y) # South
-        squares_west = reversed(range(pos_x - 1)) # West
-        squares_east = range(pos_x + 1, ext_x - pos_x) # East
 
         north, west, east, south = [], [], [], []
 
-        for sqr_y in squares_north:
+        for sqr_y in reversed(range(pos_y - 1)): # North
             north.append((pos_x, sqr_y))
-        for sqr_y in squares_south:
+        for sqr_y in range(pos_y + 1, ext_y - pos_y): # South
             south.append((pos_y, sqr_y))
-        for sqr_x in squares_west:
+        for sqr_x in reversed(range(pos_x - 1)): # West
             west.append((sqr_x, pos_y))
-        for sqr_x in squares_east:
+        for sqr_x in range(pos_x + 1, ext_x - pos_x): # East
             east.append((sqr_x, pos_y))
 
         logging.debug("Horizontal and vertical squares for Queen in (%d,%d): %s; %s; %s; %s",
-                      pos_x, pos_y, squares_west, squares_east, squares_north, squares_south)
+                      pos_x, pos_y, west, east, north, south)
 
         northeast, southeast, southwest, northwest = [], [], [], []
 
-        squares_northeast = zip(range(pos_x + 1, ext_x - pos_x),
-                                reversed(range(pos_y - 1,)))
-        squares_southeast = zip(range(pos_x + 1, ext_x - pos_x),
-                                range(pos_y + 1, ext_y - pos_y))
-        squares_southwest = zip(reversed(range(pos_x - 1)),
-                                range(pos_y + 1, ext_y - pos_y))
-        squares_northwest = zip(reversed(range(pos_x - 1)),
-                                reversed(range(pos_y - 1)))
-
-        for sqr_x, sqr_y in squares_northeast:
+        for sqr_x, sqr_y in zip(range(pos_x + 1, ext_x - pos_x), # Northeast
+                                reversed(range(pos_y - 1,))):
             northeast.append((sqr_x, sqr_y))
-        for sqr_x, sqr_y in squares_southeast:
+        for sqr_x, sqr_y in zip(range(pos_x + 1, ext_x - pos_x), # Southeast
+                                range(pos_y + 1, ext_y - pos_y)):
             southeast.append((sqr_x, sqr_y))
-        for sqr_x, sqr_y in squares_southwest:
+        for sqr_x, sqr_y in zip(reversed(range(pos_x - 1)),      # Southwest
+                                range(pos_y + 1, ext_y - pos_y)):
             southwest.append((sqr_x, sqr_y))
-        for sqr_x, sqr_y in squares_northwest:
+        for sqr_x, sqr_y in zip(reversed(range(pos_x - 1)),      # Northwest
+                                reversed(range(pos_y - 1))):
             northwest.append((sqr_x, sqr_y))
 
         logging.debug("Diagonal squares for Queen in (%d,%d): %s; %s; %s; %s", pos_x, pos_y,
-                      squares_northwest, squares_southeast, squares_northeast, squares_southwest)
+                      northwest, southeast, northeast, southwest)
 
         adj = {}
         adj[self.EAST] = east # East
@@ -304,8 +304,10 @@ class Queen(SquarePiece):
 
 class Bishop(SquarePiece):
     """
+
     Bishop piece class, inherited from SquarePiece class, determines the possible
     movements and adjacencies of the Bishop (B) chessboard piece.
+
     """
 
     def __init__(self):
@@ -324,30 +326,26 @@ class Bishop(SquarePiece):
         pos_y -- Y position of piece that will be placed
 
         """
+
         ext_x, ext_y = len(board[0]), len(board)
 
         northeast, southeast, southwest, northwest = [], [], [], []
 
-        squares_northeast = zip(range(pos_x + 1, ext_x - pos_x),
-                                reversed(range(pos_y - 1,)))
-        squares_southeast = zip(range(pos_x + 1, ext_x - pos_x),
-                                range(pos_y + 1, ext_y - pos_y))
-        squares_southwest = zip(reversed(range(pos_x - 1)),
-                                range(pos_y + 1, ext_y - pos_y))
-        squares_northwest = zip(reversed(range(pos_x - 1)),
-                                reversed(range(pos_y - 1)))
-
-        for sqr_x, sqr_y in squares_northeast:
+        for sqr_x, sqr_y in zip(range(pos_x + 1, ext_x - pos_x), # Northeast
+                                reversed(range(pos_y - 1,))):
             northeast.append((sqr_x, sqr_y))
-        for sqr_x, sqr_y in squares_southeast:
+        for sqr_x, sqr_y in zip(range(pos_x + 1, ext_x - pos_x), # Southeast
+                                range(pos_y + 1, ext_y - pos_y)):
             southeast.append((sqr_x, sqr_y))
-        for sqr_x, sqr_y in squares_southwest:
+        for sqr_x, sqr_y in zip(reversed(range(pos_x - 1)),      # Southwest
+                                range(pos_y + 1, ext_y - pos_y)):
             southwest.append((sqr_x, sqr_y))
-        for sqr_x, sqr_y in squares_northwest:
+        for sqr_x, sqr_y in zip(reversed(range(pos_x - 1)),      # Northwest
+                                reversed(range(pos_y - 1))):
             northwest.append((sqr_x, sqr_y))
 
         logging.debug("Diagonal squares for Bishop in (%d,%d): %s; %s; %s; %s", pos_x, pos_y,
-                      squares_northwest, squares_southeast, squares_northeast, squares_southwest)
+                      northwest, southeast, northeast, southwest)
 
         adj = {}
         adj[self.NORTHEAST] = northeast # Northeast
@@ -362,8 +360,10 @@ class Bishop(SquarePiece):
 
 class Rook(SquarePiece):
     """
+
     Rook piece class, inherited from SquarePiece class, determines the possible
     movements and adjacencies of the Rook/Castle (R) chessboard piece.
+
     """
 
     def __init__(self):
@@ -380,29 +380,25 @@ class Rook(SquarePiece):
         board -- Matrix with possible positions
         pos_x -- X position of piece that will be placed
         pos_y -- Y position of piece that will be placed
-        sqt -- Inherited squares configuration, used for Rook 2 - n squares movement.
 
         """
+
         # Adjacency parameters for the queen piece
         ext_x, ext_y = len(board[0]), len(board)
-        squares_north = reversed(range(pos_y - 1)) # North
-        squares_south = range(pos_y + 1, ext_y - pos_y) # South
-        squares_west = reversed(range(pos_x - 1)) # West
-        squares_east = range(pos_x + 1, ext_x - pos_x) # East
 
         north, west, east, south = [], [], [], []
 
-        for sqr_y in squares_north:
+        for sqr_y in reversed(range(pos_y - 1)): # North
             north.append((pos_x, sqr_y))
-        for sqr_y in squares_south:
+        for sqr_y in range(pos_y + 1, ext_y - pos_y): # South
             south.append((pos_y, sqr_y))
-        for sqr_x in squares_west:
+        for sqr_x in reversed(range(pos_x - 1)): # West
             west.append((sqr_x, pos_y))
-        for sqr_x in squares_east:
+        for sqr_x in range(pos_x + 1, ext_x - pos_x): # East
             east.append((sqr_x, pos_y))
 
-        logging.debug("Horizontal and vertical squares for Queen in (%d,%d): %s; %s; %s; %s",
-                      pos_x, pos_y, squares_west, squares_east, squares_north, squares_south)
+        logging.debug("Horizontal and vertical squares for Rook in (%d,%d): %s; %s; %s; %s",
+                      pos_x, pos_y, west, east, north, south)
 
         adj = {}
         adj[self.EAST] = east # East
@@ -423,7 +419,8 @@ class Knight(Piece):
 
     """
 
-    NORTHERN1, NORTHERN2, NORTHERN3, NORTHERN4, SOUTHERN1, SOUTHERN2, SOUTHERN3, SOUTHERN4 = [x for x in range(8)]
+    NORTHERN1, NORTHERN2, NORTHERN3, NORTHERN4, \
+    SOUTHERN1, SOUTHERN2, SOUTHERN3, SOUTHERN4 = [x for x in range(8)]
     def __init__(self):
         """ Initializes Knight piece class """
         Piece.__init__(self, 'N')
@@ -440,6 +437,7 @@ class Knight(Piece):
         pos_y -- Y position of piece that will be placed
 
         """
+
         logging.debug("Preparing adjacencies of Knight in (%d,%d)", pos_x, pos_y)
         adj = {}
         adj[self.NORTHERN1] = (pos_x - 1, pos_y - 2)
@@ -454,10 +452,44 @@ class Knight(Piece):
         # Filter adjacencies with available boundaries
         self.adjacencies = {_ : adj[_] for _ in self.boundaries}
 
-    def check_boundaries(self, board, pos_x, pos_y):
-        """Checks the special knight boundaries"""
+    def prepare_boundaries(self, board, pos_x, pos_y):
+        """
 
-        # if pos_x >= 1 and pos_y >= 2:
+        Prepares the special knight boundaries, separating from the general
+        boundaries chess logic of the program.
+
+        Keyword arguments:
+
+        board -- Chessboard matrix with positions
+        pos_x -- X Position of the knight piece
+        pos_x -- Y Position of the knight piece
+
+        """
+
+        boundaries = []
+        ext_x, ext_y = len(board[0]), len(board)
+
+        # Northern directions
+        if pos_x >= 1 and pos_y >= 2:
+            boundaries.append(self.NORTHERN1)
+        if (ext_x - pos_x) >= 1 and pos_y >= 2:
+            boundaries.append(self.NORTHERN2)
+        if pos_x >= 2 and pos_y >= 1:
+            boundaries.append(self.NORTHERN3)
+        if (ext_x - pos_x) >= 2 and pos_y >= 1:
+            boundaries.append(self.NORTHERN4)
+
+        # Southern directions
+        if pos_x >= 1 and (ext_y - pos_y) >= 2:
+            boundaries.append(self.SOUTHERN1)
+        if (ext_x - pos_x) >= 1 and (ext_y - pos_y) >= 2:
+            boundaries.append(self.SOUTHERN2)
+        if (ext_x - pos_x) >= 2 and (ext_y - pos_y) >= 1:
+            boundaries.append(self.SOUTHERN3)
+        if pos_x >= 2 and (ext_y - pos_y) >= 1:
+            boundaries.append(self.SOUTHERN4)
+
+        return boundaries
 
     def check_adj(self, boundaries, board, pos_x, pos_y):
         """
@@ -474,31 +506,17 @@ class Knight(Piece):
         pos_y -- Y Position tuple of the piece
 
         """
+
         is_occupied = False
         pos = (pos_x, pos_y)
-        ext_x, ext_y = len(board[0]), len(board)
-        self.boundaries = boundaries
+        self.boundaries = self.prepare_boundaries(board, pos_x, pos_y)
         self.prepare_adj(board, pos_x, pos_y)
 
-        # Northern direction adjacencies with special extemities
-        if self.NORTH in boundaries and pos_y >= 2:
-            is_occupied = self.check_zone(self.NORTHERN1, board, pos)
-        if self.SOUTH in boundaries and pos_y >= 2:
-            is_occupied = self.check_zone(self.NORTHERN2, board, pos)
-        if self.WEST in boundaries and pos_x >= 2:
-            is_occupied = self.check_zone(self.NORTHERN3, board, pos)
-        if self.EAST in boundaries and pos_x >= 2:
-            is_occupied = self.check_zone(self.NORTHERN4, board, pos)
-
-        # Southern directions adjacencies with special extremities
-        if self.WEST in boundaries and (ext_y - pos_y) >= 2:
-            is_occupied = self.check_zone(self.SOUTHERN1, board, pos)
-        if self.EAST in boundaries and (ext_x - pos_x) >= 2:
-            is_occupied = self.check_zone(self.SOUTHERN2, board, pos)
-        if self.SOUTH in boundaries and (ext_y - pos_y) >= 2:
-            is_occupied = self.check_zone(self.SOUTHERN3, board, pos)
-        if self.NORTH in boundaries and (ext_x - pos_x) >= 2:
-            is_occupied = self.check_zone(self.SOUTHERN4, board, pos)
+        for direction in self.boundaries:
+            logging.info("Knight type movement detected, proceding to unary limits")
+            logging.debug("Checking zone for direction %d", direction)
+            # Verify all the possible direction adjacencies
+            is_occupied = self.check_zone(direction, board, pos)
 
         return is_occupied
 
@@ -509,6 +527,7 @@ class PieceFactory(object):
     with the Factory pattern
 
     """
+
     @staticmethod
     def generate_pieces(types):
         """
@@ -520,6 +539,7 @@ class PieceFactory(object):
         types -- List of pieces with the given types
 
         """
+
         pieces = []
         for typ in types:
             pieces.append(PieceFactory.generate_piece(typ))
@@ -536,6 +556,7 @@ class PieceFactory(object):
         typ -- Piece with a given type
 
         """
+
         if typ is 'K':
             return King()
         elif typ is 'Q':

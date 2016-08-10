@@ -85,14 +85,19 @@ def insert_piece(piece, board, pos_x, pos_y):
     """
     logging.debug("Board before insertion of %s in (%d, %d): %s", piece.letter, pos_x, pos_y, board)
     # Put the piece with the unicode representation on board
-    board[pos_x][pos_y] = ord(str(piece))
+    board[pos_y][pos_x] = ord(str(piece))
 
     logging.debug("List of adjacencies of %s for (%d, %d): %s",
                   piece.letter, pos_x, pos_y, piece.adjacencies)
     # Insert all the adjacencies related to the piece
     for _, adj in piece.adjacencies.items():
-        adj_x, adj_y = adj
-        board[adj_x][adj_y] = THREAT
+        if isinstance(adj, list):
+            for adj_t in adj:
+                adj_x, adj_y = adj_t
+                board[adj_y][adj_x] = THREAT
+        else:
+            adj_x, adj_y = adj
+            board[adj_y][adj_x] = THREAT
     logging.debug("Board after insertion of %s in (%d, %d): %s", piece.letter, pos_x, pos_y, board)
 
 def unique_configuration(sequence, board):
@@ -124,6 +129,7 @@ def unique_configuration(sequence, board):
                 boundaries = prepare_boundaries(board, pos_x, pos_y)
                 # Verify if the adjacencies of the position are available
                 if piece.check_adj(boundaries, board, pos_x, pos_y):
+                    logging.info("Found threat zone, skipping this position")
                     continue
                 logging.debug("Putting piece %s on board", piece)
                 insert_piece(piece, board, pos_x, pos_y)
