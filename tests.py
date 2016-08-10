@@ -22,47 +22,38 @@ class BoardApplicationTest(unittest.TestCase):
     def test_boundaries(self):
         """ Tests boundaries checking """
         matrix = board.Board(3, 3)
-
         # Corner upper left boundaries
         corner_uleft_boundaries = [1, 2, 5]
         result = matrix.prepare_boundaries(0, 0)
         self.assertEqual(corner_uleft_boundaries, result)
-
         # Corner down left boundaries
         corner_dleft_boundaries = [0, 1, 4]
         result = matrix.prepare_boundaries(0, 2)
         self.assertEqual(corner_dleft_boundaries, result)
-
         # Between left corners boundaries
         corner_bleft_boundaries = [0, 1, 2, 4, 5]
         result = matrix.prepare_boundaries(0, 1)
         self.assertEqual(corner_bleft_boundaries, result)
-
         # Corner upper right boundaries
         corner_uright_boundaries = [2, 3, 6]
         result = matrix.prepare_boundaries(2, 0)
         self.assertEqual(corner_uright_boundaries, result)
-
         # Corner down right boundaries
         corner_dright_boundaries = [0, 3, 7]
         result = matrix.prepare_boundaries(2, 2)
         self.assertEqual(corner_dright_boundaries, result)
-
         # Between corners right boundaries
         corner_bright_boundaries = [0, 2, 3, 6, 7]
         result = matrix.prepare_boundaries(2, 1)
         self.assertEqual(corner_bright_boundaries, result)
-
         # Upper between corners boundaries
         upper_boundaries = [1, 2, 3, 5, 6]
         result = matrix.prepare_boundaries(1, 0)
         self.assertEqual(upper_boundaries, result)
-
         # Down between corners
         down_boundaries = [0, 1, 3, 4, 7]
         result = matrix.prepare_boundaries(1, 2)
         self.assertEqual(down_boundaries, result)
-
         # All boundaries
         boundaries = [0, 1, 2, 3, 4, 5, 6, 7]
         result = matrix.prepare_boundaries(1, 1)
@@ -130,7 +121,7 @@ class PiecesApplicationTest(unittest.TestCase):
         adjacencies = {1: [(1, 0), (2, 0)], 2: [(0, 1), (0, 2)], 5: [(1, 1), (2, 2)]}
         boundaries = matrix.prepare_boundaries(0, 0)
         queen.boundaries = boundaries
-        queen.prepare_adj(matrix, 0, 0)
+        queen.prepare_adj(matrix.board, 0, 0)
         result = queen.adjacencies
         self.assertEqual(adjacencies, result)
 
