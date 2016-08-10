@@ -91,6 +91,14 @@ class BoardApplicationTest(unittest.TestCase):
         matrix.unique_configuration(sequence)
         self.assertEqual(expected_matrix, matrix.board)
 
+    def test_recursive(self):
+        """ Test recursive iteration """
+        matrix = board.Board(3, 3)
+        king1 = pieces.PieceFactory.generate_piece('K')
+        king2 = pieces.PieceFactory.generate_piece('K')
+        rook = pieces.PieceFactory.generate_piece('R')
+        matrix.recursive([king1,king2,rook],(0, 0))
+        print(matrix.board)
 
 class PiecesApplicationTest(unittest.TestCase):
     """ Class of chess main application - pieces module testing """

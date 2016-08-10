@@ -21,7 +21,7 @@ def main():
     """
 
     # Configures the logging processor for information
-    logging.basicConfig(filename='chess.log', level=logging.INFO, format='%(asctime)s %(message)s')
+    logging.basicConfig(filename='chess.log', level=logging.DEBUG, format='%(asctime)s %(message)s')
 
     # Configures the argument parser for the input
     parser = argparse.ArgumentParser(
@@ -52,17 +52,25 @@ def main():
 
     start = timeit.default_timer()
 
+    configurations = []
     # Generate a list of possible alternative of ordered pieces
     permutations = board.possible_ordered_sequences(pieces)
     logging.info("Sequence of possible permutations: %s", permutations)
 
     # Generate the board matrix with zeros and call function for unique configurations
-    configurations = []
     for sequence in permutations:
         config = board.Board(col, row)
-        if config.unique_configuration(sequence):
+        # if config.unique_configuration(sequence):
+        if config.recursive_configuration(sequence):
             configurations.append(config.board)
             print(config)
+
+    # Single sequence. to be used in future.
+    # config = board.Board(col, row)
+    # sequence = board.basic_sequence(pieces)
+    # if config.recursive_configuration(sequence):
+    #     configurations.append(config)
+    #     print(cfg)
 
     elapsed = timeit.default_timer() - start
     print("Total Amount: %d" % len(configurations))

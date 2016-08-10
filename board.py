@@ -20,6 +20,8 @@ class Board(object):
     FREE, THREAT = [x for x in range(2)]
     def __init__(self, columns, rows):
         self.board = [[0] * columns for _ in itertools.repeat(None, rows)]
+        self.ext_x = len(self.board[0])
+        self.ext_y = len(self.board)
 
     def prepare_boundaries(self, pos_x, pos_y):
         """
@@ -164,6 +166,43 @@ class Board(object):
         # Verify if all the pieces were placed on chessboard
         return pieces_inserted == len(sequence)
 
+    def recursive_configuration(self, sequence):
+        """ Inserts recursively using backtrack algorithm. """
+        items = pieces.PieceFactory.generate_pieces(sequence)
+        if len(items) >= 1:
+            return self.recursive(items, (0, 0))
+        else:
+            return False
+
+    def recursive(self, units, position):
+        """ Recursive call """
+        pos_x, pos_y = position
+        if pos_x == self.ext_x:
+            return self.recursive(units, (0, pos_y + 1)) # Jump to next row
+        if pos_y == self.ext_y:
+            return len(units) == 0 # Finished recursion
+
+        logging.debug("Preparing for recursive configuration for %s piece", units)
+
+        if len(units) == 0:
+            return True # Stop when put all pieces on chessboard
+        if self.board[pos_y][pos_x] != 0:
+            logging.debug("Found piece or threat on position (%d,%d), skipping", pos_x, pos_y)
+            return self.recursive(units, (pos_x + 1, pos_y)) # Continue
+        else:
+            piece = units[0]
+            logging.debug("Checking piece %s in position (%d,%d)", piece, pos_x, pos_y)
+            boundaries = self.prepare_boundaries(pos_x, pos_y)
+            if piece.check_adj(boundaries, self.board, pos_x, pos_y):
+                logging.info("Found threat zone, skipping this position")
+                return self.recursive(units, (pos_x + 1, pos_y)) # Continue
+            else:
+                logging.debug("Putting piece %s on board", piece)
+                self.insert_piece(piece, pos_x, pos_y)
+                units = units[1:]
+
+        return self.recursive(units, (pos_x + 1, pos_y)) # Next
+
     def __str__(self):
         """
 
@@ -181,6 +220,26 @@ class Board(object):
             mat += '\n'
         return mat
 
+def basic_sequence(piece_dict):
+    """
+
+    Create a basic sequence with the given pieces.
+
+    Keyword arguments:
+
+    piece_dict -- The pieces dictionary with the quantity of each piece.
+
+    """
+
+    sequence = []
+    # Iterate over the pieces original dict
+    for piece, number in piece_dict.items():
+        if number < 1:
+            continue
+        times = (("%s " % piece)*number)
+        sequence.extend(times.split())
+    return sequence
+
 def possible_ordered_sequences(piece_dict):
     """
 
@@ -193,15 +252,8 @@ def possible_ordered_sequences(piece_dict):
 
     """
 
-    sequence, sequences = [], []
-
-    # Iterate over the pieces original dict
-    for piece, number in piece_dict.items():
-        if number < 1:
-            continue
-        times = (("%s " % piece)*number)
-        sequence.extend(times.split())
-
+    sequences = []
+    sequence = basic_sequence(piece_dict)
     # Create permutations with itertools.permutations, then return a set of it
     sequences.extend(itertools.permutations(sequence))
     return sequences
