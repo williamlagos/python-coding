@@ -65,6 +65,7 @@ def main():
             print(config)
 
     elapsed = timeit.default_timer() - start
+    print("Total Amount: %d" % len(configurations))
     print("Time elapsed %ss" %elapsed)
 
 if __name__ == "__main__":
