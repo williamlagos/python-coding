@@ -97,8 +97,7 @@ class BoardApplicationTest(unittest.TestCase):
         king1 = pieces.PieceFactory.generate_piece('K')
         king2 = pieces.PieceFactory.generate_piece('K')
         rook = pieces.PieceFactory.generate_piece('R')
-        matrix.recursive([king1,king2,rook],(0, 0))
-        print(matrix.board)
+        matrix.recursive([king1, king2, rook], (0, 0))
 
 class PiecesApplicationTest(unittest.TestCase):
     """ Class of chess main application - pieces module testing """

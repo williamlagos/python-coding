@@ -240,6 +240,14 @@ def basic_sequence(piece_dict):
         sequence.extend(times.split())
     return sequence
 
+def unique(iterable):
+    seen = set()
+    for x in iterable:
+        if x in seen:
+            continue
+        seen.add(x)
+        yield x
+
 def possible_ordered_sequences(piece_dict):
     """
 
@@ -255,5 +263,7 @@ def possible_ordered_sequences(piece_dict):
     sequences = []
     sequence = basic_sequence(piece_dict)
     # Create permutations with itertools.permutations, then return a set of it
-    sequences.extend(itertools.permutations(sequence))
+    for permutation in unique(itertools.permutations(sequence)):
+        sequences.append(permutation)
+    print sequences
     return sequences

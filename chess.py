@@ -21,7 +21,7 @@ def main():
     """
 
     # Configures the logging processor for information
-    logging.basicConfig(filename='chess.log', level=logging.DEBUG, format='%(asctime)s %(message)s')
+    logging.basicConfig(filename='chess.log', level=logging.INFO, format='%(asctime)s %(message)s')
 
     # Configures the argument parser for the input
     parser = argparse.ArgumentParser(
@@ -73,6 +73,7 @@ def main():
     #     print(cfg)
 
     elapsed = timeit.default_timer() - start
+    print("Number of permutations: %d" % len(permutations))
     print("Total Amount: %d" % len(configurations))
     print("Time elapsed %ss" %elapsed)
 
