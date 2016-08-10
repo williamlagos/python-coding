@@ -59,7 +59,7 @@ def main():
         config = board.Board(col, row)
         if config.unique_configuration(sequence):
             configurations.append(config.board)
-            print(config.board)
+            print(config)
 
 if __name__ == "__main__":
     try:

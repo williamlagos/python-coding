@@ -125,5 +125,21 @@ class PiecesApplicationTest(unittest.TestCase):
         result = queen.adjacencies
         self.assertEqual(adjacencies, result)
 
+    def test_check_adj(self):
+        """ Tests check_adj between multiple insertion"""
+        result = board.Board(3, 3)
+        matrix = [[75, 1, 75], [1, 1, 1], [0, 0, 0]]
+        king1 = pieces.PieceFactory.generate_piece('K')
+        king2 = pieces.PieceFactory.generate_piece('K')
+        boundaries = result.prepare_boundaries(0, 0)
+        res1 = king1.check_adj(boundaries, result.board, 0, 0)
+        self.assertFalse(res1)
+        result.insert_piece(king1, 0, 0)
+        boundaries = result.prepare_boundaries(2, 0)
+        res2 = king2.check_adj(boundaries, result.board, 2, 0)
+        self.assertFalse(res2)
+        result.insert_piece(king2, 2, 0)
+        self.assertEqual(matrix, result.board)
+
 if __name__ == '__main__':
     unittest.main()

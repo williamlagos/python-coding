@@ -43,8 +43,27 @@ class Piece(object):
         self.letter = let
 
     def check_zone(self, direction, board, pos):
-        """ Check adjacency zone skeleton base method """
-        pass
+        """
+
+        Checks piece zone with the adjacencies relation.
+
+        Keyword arguments:
+
+        direction -- Direction code to be checked (N,E,S,W,NE,SE,SW,NW)
+        board -- Chessboard matrix to be analyzed
+        pos -- Position tuple (X,Y) of possible insertion
+
+        """
+
+        adj_x, adj_y = self.adjacencies[direction]
+        logging.debug("Adjacency relation (%d,%d): %s", adj_x, adj_y, self.adjacencies)
+        # Check if there is another piece in the adjacency zone. If it's just threat zone, ignore
+        if board[adj_y][adj_x] > 1:
+            logging.debug("(%d, %d) is not a valid adjacency, zone checked.", adj_x, adj_y)
+            return True
+        logging.debug("Added (%d, %d) as a valid adjacency for the piece in (%s)",
+                      adj_x, adj_y, pos)
+        return False
 
     def prepare_adj(self, board, pos_x, pos_y):
         """ Prepare adjacencies skeleton base method """
@@ -98,7 +117,9 @@ class SquarePiece(Piece):
         for adj in adjacencies:
             adj_x, adj_y = adj
             logging.debug("Checking (%d, %d) as a valid adjacency", adj_x, adj_y)
-            if board[adj_y][adj_x] != 0:
+            # Check if there is another piece in the adjacency
+            # zone. If it's just threat zone, ignore
+            if board[adj_y][adj_x] > 1:
                 return True
             logging.debug("Checked (%d, %d) as a valid adjacency for the piece in (%s)",
                           adj_x, adj_y, pos)
@@ -120,7 +141,6 @@ class SquarePiece(Piece):
         """
 
         pos = (pos_x, pos_y)
-        is_occupied = False
         # Set for only valid movement boundaries for the given piece
         self.boundaries = [_ for _ in boundaries if self.movements[_] > 0]
         self.prepare_adj(board, pos_x, pos_y)
@@ -129,9 +149,10 @@ class SquarePiece(Piece):
         # viable to put the piece in this position
         for direction in self.boundaries:
             # Verify all the possible direction adjacencies
-            is_occupied = self.check_zone(direction, board, pos)
+            if self.check_zone(direction, board, pos):
+                return True
 
-        return is_occupied
+        return False
 
 
 class King(Piece):
@@ -146,28 +167,6 @@ class King(Piece):
         """ Initializes King piece class """
 
         Piece.__init__(self, 'K', [1, 1, 1, 1, 1, 1, 1, 1])
-
-    def check_zone(self, direction, board, pos):
-        """
-
-        Checks King piece zone with the adjacencies relation.
-
-        Keyword arguments:
-
-        direction -- Direction code to be checked (N,E,S,W,NE,SE,SW,NW)
-        board -- Chessboard matrix to be analyzed
-        pos -- Position tuple (X,Y) of possible insertion
-
-        """
-
-        adj_x, adj_y = self.adjacencies[direction]
-        logging.debug("Adjacency relation (%d,%d): %s", adj_x, adj_y, self.adjacencies)
-        if board[adj_y][adj_x] != 0:
-            logging.debug("(%d, %d) is not a valid adjacency, zone checked.", adj_x, adj_y)
-            return True
-        logging.debug("Added (%d, %d) as a valid adjacency for the piece in (%s)",
-                      adj_x, adj_y, pos)
-        return False
 
     def prepare_adj(self, board, pos_x, pos_y):
         """
@@ -211,7 +210,6 @@ class King(Piece):
 
         """
 
-        is_occupied = False
         pos = (pos_x, pos_y)
         self.boundaries = boundaries
         self.prepare_adj(board, pos_x, pos_y)
@@ -222,9 +220,10 @@ class King(Piece):
             logging.info("King type movement detected, proceding to unary limits")
             logging.debug("Checking zone for direction %d", direction)
             # Verify all the possible direction adjacencies
-            is_occupied = self.check_zone(direction, board, pos)
+            if self.check_zone(direction, board, pos):
+                return True
 
-        return is_occupied
+        return False
 
 
 class Queen(SquarePiece):
@@ -257,13 +256,13 @@ class Queen(SquarePiece):
 
         north, west, east, south = [], [], [], []
 
-        for sqr_y in reversed(range(pos_y - 1)): # North
+        for sqr_y in reversed(range(pos_y)): # North
             north.append((pos_x, sqr_y))
-        for sqr_y in range(pos_y + 1, ext_y - pos_y): # South
-            south.append((pos_y, sqr_y))
-        for sqr_x in reversed(range(pos_x - 1)): # West
+        for sqr_y in range(pos_y + 1, ext_y): # South
+            south.append((pos_x, sqr_y))
+        for sqr_x in reversed(range(pos_x)): # West
             west.append((sqr_x, pos_y))
-        for sqr_x in range(pos_x + 1, ext_x - pos_x): # East
+        for sqr_x in range(pos_x + 1, ext_x): # East
             east.append((sqr_x, pos_y))
 
         logging.debug("Horizontal and vertical squares for Queen in (%d,%d): %s; %s; %s; %s",
@@ -271,17 +270,17 @@ class Queen(SquarePiece):
 
         northeast, southeast, southwest, northwest = [], [], [], []
 
-        for sqr_x, sqr_y in zip(range(pos_x + 1, ext_x - pos_x), # Northeast
-                                reversed(range(pos_y - 1,))):
+        for sqr_x, sqr_y in zip(range(pos_x + 1, ext_x), # Northeast
+                                reversed(range(pos_y))):
             northeast.append((sqr_x, sqr_y))
-        for sqr_x, sqr_y in zip(range(pos_x + 1, ext_x - pos_x), # Southeast
-                                range(pos_y + 1, ext_y - pos_y)):
+        for sqr_x, sqr_y in zip(range(pos_x + 1, ext_x), # Southeast
+                                range(pos_y + 1, ext_y)):
             southeast.append((sqr_x, sqr_y))
-        for sqr_x, sqr_y in zip(reversed(range(pos_x - 1)),      # Southwest
-                                range(pos_y + 1, ext_y - pos_y)):
+        for sqr_x, sqr_y in zip(reversed(range(pos_x)),      # Southwest
+                                range(pos_y + 1, ext_y)):
             southwest.append((sqr_x, sqr_y))
-        for sqr_x, sqr_y in zip(reversed(range(pos_x - 1)),      # Northwest
-                                reversed(range(pos_y - 1))):
+        for sqr_x, sqr_y in zip(reversed(range(pos_x)),      # Northwest
+                                reversed(range(pos_y))):
             northwest.append((sqr_x, sqr_y))
 
         logging.debug("Diagonal squares for Queen in (%d,%d): %s; %s; %s; %s", pos_x, pos_y,
@@ -331,17 +330,17 @@ class Bishop(SquarePiece):
 
         northeast, southeast, southwest, northwest = [], [], [], []
 
-        for sqr_x, sqr_y in zip(range(pos_x + 1, ext_x - pos_x), # Northeast
-                                reversed(range(pos_y - 1,))):
+        for sqr_x, sqr_y in zip(range(pos_x + 1, ext_x), # Northeast
+                                reversed(range(pos_y))):
             northeast.append((sqr_x, sqr_y))
-        for sqr_x, sqr_y in zip(range(pos_x + 1, ext_x - pos_x), # Southeast
-                                range(pos_y + 1, ext_y - pos_y)):
+        for sqr_x, sqr_y in zip(range(pos_x + 1, ext_x), # Southeast
+                                range(pos_y + 1, ext_y)):
             southeast.append((sqr_x, sqr_y))
-        for sqr_x, sqr_y in zip(reversed(range(pos_x - 1)),      # Southwest
-                                range(pos_y + 1, ext_y - pos_y)):
+        for sqr_x, sqr_y in zip(reversed(range(pos_x)),      # Southwest
+                                range(pos_y + 1, ext_y)):
             southwest.append((sqr_x, sqr_y))
-        for sqr_x, sqr_y in zip(reversed(range(pos_x - 1)),      # Northwest
-                                reversed(range(pos_y - 1))):
+        for sqr_x, sqr_y in zip(reversed(range(pos_x)),      # Northwest
+                                reversed(range(pos_y))):
             northwest.append((sqr_x, sqr_y))
 
         logging.debug("Diagonal squares for Bishop in (%d,%d): %s; %s; %s; %s", pos_x, pos_y,
@@ -388,13 +387,13 @@ class Rook(SquarePiece):
 
         north, west, east, south = [], [], [], []
 
-        for sqr_y in reversed(range(pos_y - 1)): # North
+        for sqr_y in reversed(range(pos_y)): # North
             north.append((pos_x, sqr_y))
-        for sqr_y in range(pos_y + 1, ext_y - pos_y): # South
-            south.append((pos_y, sqr_y))
-        for sqr_x in reversed(range(pos_x - 1)): # West
+        for sqr_y in range(pos_y + 1, ext_y): # South
+            south.append((pos_x, sqr_y))
+        for sqr_x in reversed(range(pos_x)): # West
             west.append((sqr_x, pos_y))
-        for sqr_x in range(pos_x + 1, ext_x - pos_x): # East
+        for sqr_x in range(pos_x + 1, ext_x): # East
             east.append((sqr_x, pos_y))
 
         logging.debug("Horizontal and vertical squares for Rook in (%d,%d): %s; %s; %s; %s",
@@ -467,7 +466,7 @@ class Knight(Piece):
         """
 
         boundaries = []
-        ext_x, ext_y = len(board[0]), len(board)
+        ext_x, ext_y = (len(board[0]) - 1), (len(board) - 1)
 
         # Northern directions
         if pos_x >= 1 and pos_y >= 2:
@@ -507,7 +506,6 @@ class Knight(Piece):
 
         """
 
-        is_occupied = False
         pos = (pos_x, pos_y)
         self.boundaries = self.prepare_boundaries(board, pos_x, pos_y)
         self.prepare_adj(board, pos_x, pos_y)
@@ -516,9 +514,10 @@ class Knight(Piece):
             logging.info("Knight type movement detected, proceding to unary limits")
             logging.debug("Checking zone for direction %d", direction)
             # Verify all the possible direction adjacencies
-            is_occupied = self.check_zone(direction, board, pos)
+            if self.check_zone(direction, board, pos):
+                return True
 
-        return is_occupied
+        return False
 
 class PieceFactory(object):
     """

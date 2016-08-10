@@ -107,6 +107,28 @@ class Board(object):
         logging.debug("Board after insertion of %s in (%d, %d): %s",
                       piece.letter, pos_x, pos_y, self.board)
 
+    def insert(self, piece):
+        """Inserts a piece"""
+        for pos_y, row in enumerate(self.board):
+            for pos_x, square in enumerate(row):
+                # Verify if the position has threat or piece placed
+                logging.debug("Starting to check piece %s in position (%d,%d)",
+                              piece, pos_x, pos_y)
+                if square != 0:
+                    continue
+
+                boundaries = self.prepare_boundaries(pos_x, pos_y)
+                # Verify if the adjacencies of the position are available
+                if piece.check_adj(boundaries, self.board, pos_x, pos_y):
+                    logging.info("Found threat zone, skipping this position")
+                    continue
+                else:
+                    logging.debug("Putting piece %s on board", piece)
+                    self.insert_piece(piece, pos_x, pos_y)
+                    return True
+        # Didn't found a suitable position for the piece on board
+        return False
+
     def unique_configuration(self, sequence):
         """
 
@@ -121,29 +143,24 @@ class Board(object):
 
         """
 
-        pieces_placed = 0
+        pieces_inserted = 0
         # Verify if there is more piece to put in the board
         logging.debug("Working with sequence %s", sequence)
         chess_pieces = pieces.PieceFactory.generate_pieces(sequence)
         for piece in chess_pieces:
-            for pos_y, row in enumerate(self.board):
-                for pos_x, square in enumerate(row):
-                    # Verify if the position has threat or piece placed
-                    logging.debug("Starting to check piece %s in position (%d,%d)",
-                                  piece, pos_x, pos_y)
-                    if square != 0:
-                        continue
-                    logging.debug("Preparing boundaries for the piece %s", piece)
-                    boundaries = self.prepare_boundaries(pos_x, pos_y)
-                    # Verify if the adjacencies of the position are available
-                    if piece.check_adj(boundaries, self.board, pos_x, pos_y):
-                        logging.info("Found threat zone, skipping this position")
-                        continue
-                    logging.debug("Putting piece %s on board", piece)
-                    self.insert_piece(piece, pos_x, pos_y)
-                    pieces_placed += 1
+            logging.debug("Preparing for unique configuration for %s piece", piece)
+            if self.insert(piece):
+                pieces_inserted += 1
         # Verify if all the pieces were placed on chessboard
-        return pieces_placed == len(sequence)
+        return pieces_inserted == len(sequence)
+
+    def __str__(self):
+        mat = ''
+        for row in self.board:
+            for squ in row:
+                mat += '%s ' % squ
+            mat += '\n'
+        return mat
 
 def possible_ordered_sequences(piece_dict):
     """
