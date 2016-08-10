@@ -7,9 +7,8 @@
 """ Tests application finds the unique combinations of X pieces on a M x N chessboard """
 
 import unittest
-import itertools
-import board
 import pieces
+import board
 
 class BoardApplicationTest(unittest.TestCase):
     """ Class of chess main application - board module testing """
@@ -22,84 +21,84 @@ class BoardApplicationTest(unittest.TestCase):
 
     def test_boundaries(self):
         """ Tests boundaries checking """
-        matrix = [[0] * 3 for _ in itertools.repeat(None, 3)]
+        matrix = board.Board(3, 3)
 
         # Corner upper left boundaries
         corner_uleft_boundaries = [1, 2, 5]
-        result = board.prepare_boundaries(matrix, 0, 0)
+        result = matrix.prepare_boundaries(0, 0)
         self.assertEqual(corner_uleft_boundaries, result)
 
         # Corner down left boundaries
         corner_dleft_boundaries = [0, 1, 4]
-        result = board.prepare_boundaries(matrix, 0, 2)
+        result = matrix.prepare_boundaries(0, 2)
         self.assertEqual(corner_dleft_boundaries, result)
 
         # Between left corners boundaries
         corner_bleft_boundaries = [0, 1, 2, 4, 5]
-        result = board.prepare_boundaries(matrix, 0, 1)
+        result = matrix.prepare_boundaries(0, 1)
         self.assertEqual(corner_bleft_boundaries, result)
 
         # Corner upper right boundaries
         corner_uright_boundaries = [2, 3, 6]
-        result = board.prepare_boundaries(matrix, 2, 0)
+        result = matrix.prepare_boundaries(2, 0)
         self.assertEqual(corner_uright_boundaries, result)
 
         # Corner down right boundaries
         corner_dright_boundaries = [0, 3, 7]
-        result = board.prepare_boundaries(matrix, 2, 2)
+        result = matrix.prepare_boundaries(2, 2)
         self.assertEqual(corner_dright_boundaries, result)
 
         # Between corners right boundaries
         corner_bright_boundaries = [0, 2, 3, 6, 7]
-        result = board.prepare_boundaries(matrix, 2, 1)
+        result = matrix.prepare_boundaries(2, 1)
         self.assertEqual(corner_bright_boundaries, result)
 
         # Upper between corners boundaries
         upper_boundaries = [1, 2, 3, 5, 6]
-        result = board.prepare_boundaries(matrix, 1, 0)
+        result = matrix.prepare_boundaries(1, 0)
         self.assertEqual(upper_boundaries, result)
 
         # Down between corners
         down_boundaries = [0, 1, 3, 4, 7]
-        result = board.prepare_boundaries(matrix, 1, 2)
+        result = matrix.prepare_boundaries(1, 2)
         self.assertEqual(down_boundaries, result)
 
         # All boundaries
         boundaries = [0, 1, 2, 3, 4, 5, 6, 7]
-        result = board.prepare_boundaries(matrix, 1, 1)
+        result = matrix.prepare_boundaries(1, 1)
         self.assertEqual(boundaries, result)
 
     def test_insert(self):
         """ Tests chessboard piece insertion """
-        result = [[0] * 3 for _ in itertools.repeat(None, 3)]
+        result = board.Board(3, 3)
         matrix = [[75, 1, 0], [1, 1, 0], [0, 0, 0]]
         piece = pieces.PieceFactory.generate_piece('K')
-        boundaries = board.prepare_boundaries(result, 0, 0)
-        piece.check_adj(boundaries, result, 0, 0)
-        board.insert_piece(piece, result, 0, 0)
-        self.assertEqual(matrix, result)
+        boundaries = result.prepare_boundaries(0, 0)
+        piece.check_adj(boundaries, result.board, 0, 0)
+        result.insert_piece(piece, 0, 0)
+        self.assertEqual(matrix, result.board)
 
     def test_multiple_insert(self):
         """ Tests chessboard multiple piece insertion """
-        result = [[0] * 3 for _ in itertools.repeat(None, 3)]
+        result = board.Board(3, 3)
         matrix = [[75, 1, 75], [1, 1, 1], [0, 0, 0]]
         king1 = pieces.PieceFactory.generate_piece('K')
         king2 = pieces.PieceFactory.generate_piece('K')
-        boundaries = board.prepare_boundaries(result, 0, 0)
-        king1.check_adj(boundaries, result, 0, 0)
-        board.insert_piece(king1, result, 0, 0)
-        boundaries = board.prepare_boundaries(result, 2, 0)
-        king2.check_adj(boundaries, result, 2, 0)
-        board.insert_piece(king2, result, 2, 0)
-        self.assertEqual(matrix, result)
+        boundaries = result.prepare_boundaries(0, 0)
+        king1.check_adj(boundaries, result.board, 0, 0)
+        result.insert_piece(king1, 0, 0)
+        boundaries = result.prepare_boundaries(2, 0)
+        king2.check_adj(boundaries, result.board, 2, 0)
+        result.insert_piece(king2, 2, 0)
+        self.assertEqual(matrix, result.board)
 
     def test_unique_configuration(self):
         """ Test one-time execution of unique_configuration """
-        matrix = [[0] * 3 for _ in itertools.repeat(None, 3)]
+        matrix = board.Board(3, 3)
         expected_matrix = [[75, 1, 75], [1, 1, 1], [1, 82, 1]]
         sequence = ('K', 'K', 'R')
-        board.unique_configuration(matrix, sequence)
-        self.assertEqual(expected_matrix, matrix)
+        matrix.unique_configuration(sequence)
+        self.assertEqual(expected_matrix, matrix.board)
 
 
 class PiecesApplicationTest(unittest.TestCase):
@@ -116,20 +115,20 @@ class PiecesApplicationTest(unittest.TestCase):
             {5: (1, 2), 6: (2, 1)}
         ]
         piece_letters = ['K', 'Q', 'B', 'R', 'N']
-        matrix = [[0] * 3 for _ in itertools.repeat(None, 3)]
+        matrix = board.Board(3, 3)
         chessmans = pieces.PieceFactory.generate_pieces(piece_letters)
-        boundaries = board.prepare_boundaries(matrix, 0, 0)
+        boundaries = matrix.prepare_boundaries(0, 0)
         for man in chessmans:
-            man.check_adj(boundaries, matrix, 0, 0)
+            man.check_adj(boundaries, matrix.board, 0, 0)
             adjacencies_list.append(man.adjacencies)
         self.assertEqual(expectedadj_list, adjacencies_list)
 
     def test_adjacencies(self):
         """ Tests adjacencies checking """
         queen = pieces.PieceFactory.generate_piece('Q')
-        matrix = [[0] * 3 for _ in itertools.repeat(None, 3)]
+        matrix = board.Board(3, 3)
         adjacencies = {1: [(1, 0), (2, 0)], 2: [(0, 1), (0, 2)], 5: [(1, 1), (2, 2)]}
-        boundaries = board.prepare_boundaries(matrix, 0, 0)
+        boundaries = matrix.prepare_boundaries(0, 0)
         queen.boundaries = boundaries
         queen.prepare_adj(matrix, 0, 0)
         result = queen.adjacencies

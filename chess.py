@@ -9,7 +9,6 @@
 import sys
 import logging
 import argparse
-import itertools
 import board
 
 def main():
@@ -55,13 +54,13 @@ def main():
     permutations = board.possible_ordered_sequences(pieces)
     logging.info("Sequence of possible permutations: %s", permutations)
 
-    # Generate the board matrix with zeros and call recursive function for unique configurations
+    # Generate the board matrix with zeros and call function for unique configurations
     configurations = []
     for sequence in permutations:
-        matrix = [[0] * col for _ in itertools.repeat(None, row)]
-        if board.unique_configuration(sequence, matrix):
-            configurations.append(matrix)
-            print(matrix)
+        config = board.Board(col, row)
+        if config.unique_configuration(sequence):
+            configurations.append(config.board)
+            print(config.board)
 
 if __name__ == "__main__":
     try:
