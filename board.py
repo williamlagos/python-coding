@@ -174,8 +174,20 @@ class Board(object):
         else:
             return False
 
+    def back_recursive(self, units, position):
+        """ Recursive call for board matrix using backtrack algorithm. """
+        pos_x, pos_y = position
+        if pos_x == self.ext_x:
+            return self.back_recursive(units, (0, pos_y + 1)) # Jump to next row
+        if pos_y == self.ext_y:
+            print('--------------')
+            return # Finished recursion
+
+        print(self.board[pos_y][pos_x])
+        return self.back_recursive(units, (pos_x + 1, pos_y)) # Next
+
     def recursive(self, units, position):
-        """ Recursive call """
+        """ Recursive call for board matrix"""
         pos_x, pos_y = position
         if pos_x == self.ext_x:
             return self.recursive(units, (0, pos_y + 1)) # Jump to next row
@@ -202,6 +214,18 @@ class Board(object):
                 units = units[1:]
 
         return self.recursive(units, (pos_x + 1, pos_y)) # Next
+
+    def inverse_board_x(self):
+        """ Get board reversed in X axis """
+        return [_[::-1] for _ in self.board]
+
+    def board_inverse_y(self):
+        """ Get board reversed in Y axis """
+        return self.board[::-1]
+
+    def board_inverse_flipped(self):
+        """ Get board reversed for both axis """
+        return [_[::-1] for _ in self.board[::-1]]
 
     def __str__(self):
         """
@@ -241,12 +265,13 @@ def basic_sequence(piece_dict):
     return sequence
 
 def unique(iterable):
+    """ Get a unique sequence """
     seen = set()
-    for x in iterable:
-        if x in seen:
+    for psx in iterable:
+        if psx in seen:
             continue
-        seen.add(x)
-        yield x
+        seen.add(psx)
+        yield psx
 
 def possible_ordered_sequences(piece_dict):
     """
@@ -265,5 +290,4 @@ def possible_ordered_sequences(piece_dict):
     # Create permutations with itertools.permutations, then return a set of it
     for permutation in unique(itertools.permutations(sequence)):
         sequences.append(permutation)
-    print sequences
     return sequences

@@ -64,6 +64,9 @@ def main():
         if config.recursive_configuration(sequence):
             configurations.append(config.board)
             print(config)
+            print(config.inverse_board_x())
+            print(config.board_inverse_y())
+            print(config.board_inverse_flipped())
 
     # Single sequence. to be used in future.
     # config = board.Board(col, row)
@@ -74,7 +77,7 @@ def main():
 
     elapsed = timeit.default_timer() - start
     print("Number of permutations: %d" % len(permutations))
-    print("Total Amount: %d" % len(configurations))
+    print("Total Unique Amount: %d" % len(configurations))
     print("Time elapsed %ss" %elapsed)
 
 if __name__ == "__main__":
