@@ -58,15 +58,19 @@ def main():
     logging.info("Sequence of possible permutations: %s", permutations)
 
     # Generate the board matrix with zeros and call function for unique configurations
-    for sequence in permutations:
-        config = board.Board(col, row)
+    for seq in permutations:
+        sequence = board.piece_sequence(seq)
         # if config.unique_configuration(sequence):
-        if config.recursive_configuration(sequence):
-            configurations.append(config.board)
-            print(config)
-            print(config.inverse_board_x())
-            print(config.board_inverse_y())
-            print(config.board_inverse_flipped())
+        print(seq)
+        for x in range(col):
+            # print(x)
+            config = board.Board(col, row)
+            config.combinations(sequence, (x, 0))
+            # configurations.append(config.board)
+            # print(config)
+            # print(config.inverse_board_x())
+            # print(config.board_inverse_y())
+            # print(config.board_inverse_flipped())
 
     # Single sequence. to be used in future.
     # config = board.Board(col, row)

@@ -9,6 +9,7 @@
 import logging
 import itertools
 import pieces
+import copy
 
 class Board(object):
     """
@@ -174,17 +175,26 @@ class Board(object):
         else:
             return False
 
-    def back_recursive(self, units, position):
+    def combinations(self, seq, position):
         """ Recursive call for board matrix using backtrack algorithm. """
+        sequence = copy.copy(seq)
         pos_x, pos_y = position
+        if len(sequence) == 0:
+            print(self)
+            return True # Stop when put all pieces on chessboard
         if pos_x == self.ext_x:
-            return self.back_recursive(units, (0, pos_y + 1)) # Jump to next row
+            return self.combinations(sequence, (0, pos_y + 1)) # Jump to next row
         if pos_y == self.ext_y:
-            print('--------------')
-            return # Finished recursion
-
-        print(self.board[pos_y][pos_x])
-        return self.back_recursive(units, (pos_x + 1, pos_y)) # Next
+            return len(sequence) == 0
+        else:
+            #print(pos_x,pos_y)
+            piece = sequence[0]
+            if not self.board[pos_y][pos_x]:
+                if not piece.check_adj(self.prepare_boundaries(pos_x, pos_y), self.board, pos_x, pos_y):
+                    #print('F')
+                    self.insert_piece(piece, pos_x, pos_y)
+                    sequence = sequence[1:]
+            return self.combinations(sequence, (pos_x + 1, pos_y)) # Next
 
     def recursive(self, units, position):
         """ Recursive call for board matrix"""
@@ -240,7 +250,7 @@ class Board(object):
                 if squ > 1:
                     mat += '%s ' % chr(squ)
                 else:
-                    mat += '%d ' % squ
+                    mat += '. '
             mat += '\n'
         return mat
 
@@ -291,3 +301,7 @@ def possible_ordered_sequences(piece_dict):
     for permutation in unique(itertools.permutations(sequence)):
         sequences.append(permutation)
     return sequences
+
+def piece_sequence(sequence):
+    """ Returns a list of Piece objects """
+    return pieces.PieceFactory.generate_pieces(sequence)
