@@ -60,18 +60,18 @@ def main():
     # Generate the board matrix with zeros and call function for unique configurations
     for seq in permutations:
         sequence = board.piece_sequence(seq)
-        # if config.unique_configuration(sequence):
         print(seq)
-        for x in range(col):
-            # print(x)
-            config = board.Board(col, row)
-            config.combinations(sequence, (x, 0))
-            # configurations.append(config.board)
-            # print(config)
+        for y in range(row):
+            for x in range(col):
+                config = board.Board(col, row)
+                if config.combinations(sequence, (x, y)):
+                    configurations.append(config)
+                # print(config)
             # print(config.inverse_board_x())
             # print(config.board_inverse_y())
             # print(config.board_inverse_flipped())
-
+    for cfg in configurations:
+        print(cfg)
     # Single sequence. to be used in future.
     # config = board.Board(col, row)
     # sequence = board.basic_sequence(pieces)

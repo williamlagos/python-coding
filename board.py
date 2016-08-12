@@ -180,18 +180,20 @@ class Board(object):
         sequence = copy.copy(seq)
         pos_x, pos_y = position
         if len(sequence) == 0:
-            print(self)
             return True # Stop when put all pieces on chessboard
         if pos_x == self.ext_x:
             return self.combinations(sequence, (0, pos_y + 1)) # Jump to next row
         if pos_y == self.ext_y:
-            return len(sequence) == 0
+            if not sum(self.board[0]): # Verify if the first row was searched.
+                pass
+                # print(sum(self.board[0]),pos_x,pos_y % self.ext_y)
+                # return self.combinations(sequence, (pos_x, pos_y % self.ext_y))
+            else:
+                return len(sequence) == 0 # Can't found any valid configuration
         else:
-            #print(pos_x,pos_y)
             piece = sequence[0]
             if not self.board[pos_y][pos_x]:
                 if not piece.check_adj(self.prepare_boundaries(pos_x, pos_y), self.board, pos_x, pos_y):
-                    #print('F')
                     self.insert_piece(piece, pos_x, pos_y)
                     sequence = sequence[1:]
             return self.combinations(sequence, (pos_x + 1, pos_y)) # Next
