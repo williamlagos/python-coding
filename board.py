@@ -6,10 +6,10 @@
 
 """ Unique module with main functions """
 
+import copy
 import logging
 import itertools
 import pieces
-import copy
 
 class Board(object):
     """
@@ -167,14 +167,6 @@ class Board(object):
         # Verify if all the pieces were placed on chessboard
         return pieces_inserted == len(sequence)
 
-    def recursive_configuration(self, sequence):
-        """ Inserts recursively using backtrack algorithm. """
-        items = pieces.PieceFactory.generate_pieces(sequence)
-        if len(items) >= 1:
-            return self.recursive(items, (0, 0))
-        else:
-            return False
-
     def combinations(self, seq, position):
         """ Recursive call for board matrix using backtrack algorithm. """
         sequence = copy.copy(seq)
@@ -193,51 +185,23 @@ class Board(object):
         else:
             piece = sequence[0]
             if not self.board[pos_y][pos_x]:
-                if not piece.check_adj(self.prepare_boundaries(pos_x, pos_y), self.board, pos_x, pos_y):
+                if not piece.check_adj(self.prepare_boundaries(pos_x, pos_y),
+                                       self.board, pos_x, pos_y):
                     self.insert_piece(piece, pos_x, pos_y)
                     sequence = sequence[1:]
             return self.combinations(sequence, (pos_x + 1, pos_y)) # Next
 
-    def recursive(self, units, position):
-        """ Recursive call for board matrix"""
-        pos_x, pos_y = position
-        if pos_x == self.ext_x:
-            return self.recursive(units, (0, pos_y + 1)) # Jump to next row
-        if pos_y == self.ext_y:
-            return len(units) == 0 # Finished recursion
-
-        logging.debug("Preparing for recursive configuration for %s piece", units)
-
-        if len(units) == 0:
-            return True # Stop when put all pieces on chessboard
-        if self.board[pos_y][pos_x] != 0:
-            logging.debug("Found piece or threat on position (%d,%d), skipping", pos_x, pos_y)
-            return self.recursive(units, (pos_x + 1, pos_y)) # Continue
-        else:
-            piece = units[0]
-            logging.debug("Checking piece %s in position (%d,%d)", piece, pos_x, pos_y)
-            boundaries = self.prepare_boundaries(pos_x, pos_y)
-            if piece.check_adj(boundaries, self.board, pos_x, pos_y):
-                logging.info("Found threat zone, skipping this position")
-                return self.recursive(units, (pos_x + 1, pos_y)) # Continue
-            else:
-                logging.debug("Putting piece %s on board", piece)
-                self.insert_piece(piece, pos_x, pos_y)
-                units = units[1:]
-
-        return self.recursive(units, (pos_x + 1, pos_y)) # Next
-
     def inverse_board_x(self):
         """ Get board reversed in X axis """
-        return [_[::-1] for _ in self.board]
+        self.board = [_[::-1] for _ in self.board]
 
     def board_inverse_y(self):
         """ Get board reversed in Y axis """
-        return self.board[::-1]
+        self.board = self.board[::-1]
 
     def board_inverse_flipped(self):
         """ Get board reversed for both axis """
-        return [_[::-1] for _ in self.board[::-1]]
+        self.board = [_[::-1] for _ in self.board[::-1]]
 
     def __str__(self):
         """

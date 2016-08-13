@@ -52,7 +52,8 @@ def main():
 
     start = timeit.default_timer()
 
-    configurations = []
+    # configurations = []
+    configurations = 0
     # Generate a list of possible alternative of ordered pieces
     permutations = board.possible_ordered_sequences(pieces)
     logging.info("Sequence of possible permutations: %s", permutations)
@@ -60,28 +61,19 @@ def main():
     # Generate the board matrix with zeros and call function for unique configurations
     for seq in permutations:
         sequence = board.piece_sequence(seq)
-        print(seq)
         for y in range(row):
             for x in range(col):
                 config = board.Board(col, row)
                 if config.combinations(sequence, (x, y)):
-                    configurations.append(config)
-                # print(config)
-            # print(config.inverse_board_x())
-            # print(config.board_inverse_y())
-            # print(config.board_inverse_flipped())
-    for cfg in configurations:
-        print(cfg)
-    # Single sequence. to be used in future.
-    # config = board.Board(col, row)
-    # sequence = board.basic_sequence(pieces)
-    # if config.recursive_configuration(sequence):
-    #     configurations.append(config)
+                    configurations += 1
+                    print(config)
+                    # configurations.append(config)
+    # for cfg in configurations:
     #     print(cfg)
 
     elapsed = timeit.default_timer() - start
     print("Number of permutations: %d" % len(permutations))
-    print("Total Unique Amount: %d" % len(configurations))
+    print("Total Unique Amount: %d" % configurations)
     print("Time elapsed %ss" %elapsed)
 
 if __name__ == "__main__":
