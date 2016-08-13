@@ -9,6 +9,7 @@
 import sys
 import timeit
 import logging
+import itertools
 import argparse
 import board
 
@@ -53,27 +54,25 @@ def main():
     start = timeit.default_timer()
 
     # configurations = []
-    configurations = 0
+    configurations = []
     # Generate a list of possible alternative of ordered pieces
     permutations = board.possible_ordered_sequences(pieces)
     logging.info("Sequence of possible permutations: %s", permutations)
 
     # Generate the board matrix with zeros and call function for unique configurations
+    matrix = [[0] * col for _ in itertools.repeat(None, row)]
     for seq in permutations:
         sequence = board.piece_sequence(seq)
-        for y in range(row):
-            for x in range(col):
-                config = board.Board(col, row)
-                if config.combinations(sequence, (x, y)):
-                    configurations += 1
-                    print(config)
-                    # configurations.append(config)
-    # for cfg in configurations:
-    #     print(cfg)
+        config = board.Board()
+        config.combinations(matrix, sequence, (0, 0))
+        configurations.extend(config.boards)
+
+    for cfg in configurations:
+        print(board.board_str(cfg))
 
     elapsed = timeit.default_timer() - start
     print("Number of permutations: %d" % len(permutations))
-    print("Total Unique Amount: %d" % configurations)
+    print("Total Unique Amount: %d" % len(configurations))
     print("Time elapsed %ss" %elapsed)
 
 if __name__ == "__main__":

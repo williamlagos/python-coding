@@ -6,7 +6,6 @@
 
 """ Unique module with main functions """
 
-import copy
 import logging
 import itertools
 import pieces
@@ -19,12 +18,10 @@ class Board(object):
     # 1 - threat zone
     # Unicode - piece placed
     FREE, THREAT = [x for x in range(2)]
-    def __init__(self, columns, rows):
-        self.board = [[0] * columns for _ in itertools.repeat(None, rows)]
-        self.ext_x = len(self.board[0])
-        self.ext_y = len(self.board)
+    def __init__(self):
+        self.boards = []
 
-    def prepare_boundaries(self, pos_x, pos_y):
+    def prepare_boundaries(self, board, pos_x, pos_y):
         """
 
         Verify the boundaries of the square that the
@@ -38,7 +35,7 @@ class Board(object):
 
         """
 
-        ext_x, ext_y = (len(self.board[0]) - 1, len(self.board) - 1)
+        ext_x, ext_y = (len(board[0]) - 1, len(board) - 1)
 
         # Boundaries relation
         # N  E  S  W  NE SE SW NW
@@ -78,7 +75,7 @@ class Board(object):
 
         return boundaries
 
-    def insert_piece(self, piece, pos_x, pos_y):
+    def insert_piece(self, board, piece, pos_x, pos_y):
         """
 
         Put the given piece in the board with its adjacencies included.
@@ -92,9 +89,9 @@ class Board(object):
 
         """
         logging.debug("Board before insertion of %s in (%d, %d): %s",
-                      piece.letter, pos_x, pos_y, self.board)
+                      piece.letter, pos_x, pos_y, board)
         # Put the piece with the unicode representation on board
-        self.board[pos_y][pos_x] = ord(str(piece))
+        board[pos_y][pos_x] = ord(str(piece))
 
         logging.debug("List of adjacencies of %s for (%d, %d): %s",
                       piece.letter, pos_x, pos_y, piece.adjacencies)
@@ -103,12 +100,12 @@ class Board(object):
             if isinstance(adj, list):
                 for adj_t in adj:
                     adj_x, adj_y = adj_t
-                    self.board[adj_y][adj_x] = self.THREAT
+                    board[adj_y][adj_x] = self.THREAT
             else:
                 adj_x, adj_y = adj
-                self.board[adj_y][adj_x] = self.THREAT
+                board[adj_y][adj_x] = self.THREAT
         logging.debug("Board after insertion of %s in (%d, %d): %s",
-                      piece.letter, pos_x, pos_y, self.board)
+                      piece.letter, pos_x, pos_y, board)
 
     def insert(self, piece):
         """
@@ -122,25 +119,25 @@ class Board(object):
         piece -- Given piece instance with its properties
 
         """
-        for pos_y, row in enumerate(self.board):
-            for pos_x, square in enumerate(row):
-                # Verify if the position has threat or piece placed
-                logging.debug("Starting to check piece %s in position (%d,%d)",
-                              piece, pos_x, pos_y)
-                if square != 0:
-                    continue
-
-                boundaries = self.prepare_boundaries(pos_x, pos_y)
-                # Verify if the adjacencies of the position are available
-                if piece.check_adj(boundaries, self.board, pos_x, pos_y):
-                    logging.info("Found threat zone, skipping this position")
-                    continue
-                else:
-                    logging.debug("Putting piece %s on board", piece)
-                    self.insert_piece(piece, pos_x, pos_y)
-                    return True
-        # Didn't found a suitable position for the piece on board
-        return False
+        # for pos_y, row in enumerate(self.board):
+        #     for pos_x, square in enumerate(row):
+        #         # Verify if the position has threat or piece placed
+        #         logging.debug("Starting to check piece %s in position (%d,%d)",
+        #                       piece, pos_x, pos_y)
+        #         if square != 0:
+        #             continue
+        #
+        #         boundaries = self.prepare_boundaries(pos_x, pos_y)
+        #         # Verify if the adjacencies of the position are available
+        #         if piece.check_adj(boundaries, self.board, pos_x, pos_y):
+        #             logging.info("Found threat zone, skipping this position")
+        #             continue
+        #         else:
+        #             logging.debug("Putting piece %s on board", piece)
+        #             self.insert_piece(piece, pos_x, pos_y)
+        #             return True
+        # # Didn't found a suitable position for the piece on board
+        # return False
 
     def unique_configuration(self, sequence):
         """
@@ -167,58 +164,85 @@ class Board(object):
         # Verify if all the pieces were placed on chessboard
         return pieces_inserted == len(sequence)
 
-    def combinations(self, seq, position):
+    def combinations(self, board, sequence, position):
         """ Recursive call for board matrix using backtrack algorithm. """
-        sequence = copy.copy(seq)
-        pos_x, pos_y = position
-        if len(sequence) == 0:
-            return True # Stop when put all pieces on chessboard
-        if pos_x == self.ext_x:
-            return self.combinations(sequence, (0, pos_y + 1)) # Jump to next row
-        if pos_y == self.ext_y:
-            if not sum(self.board[0]): # Verify if the first row was searched.
-                pass
-                # print(sum(self.board[0]),pos_x,pos_y % self.ext_y)
-                # return self.combinations(sequence, (pos_x, pos_y % self.ext_y))
-            else:
-                return len(sequence) == 0 # Can't found any valid configuration
-        else:
-            piece = sequence[0]
-            if not self.board[pos_y][pos_x]:
-                if not piece.check_adj(self.prepare_boundaries(pos_x, pos_y),
-                                       self.board, pos_x, pos_y):
-                    self.insert_piece(piece, pos_x, pos_y)
-                    sequence = sequence[1:]
-            return self.combinations(sequence, (pos_x + 1, pos_y)) # Next
+        if not sequence:
+            self.boards.append(board)
+            # print(board_str(board))
+            return True
 
-    def inverse_board_x(self):
-        """ Get board reversed in X axis """
-        self.board = [_[::-1] for _ in self.board]
+        piece = sequence[0]
+        col, row = position
+        while row < len(board):
+            while col < len(board[0]):
+                boundaries = self.prepare_boundaries(board, col, row)
+                # Verify if the adjacencies of the position are available
+                if board[row][col] == 0:
+                    if not piece.check_adj(boundaries, board, col, row):
+                        new_board = [r[:] for r in board]
+                        self.insert_piece(new_board, piece, col, row)
+                        self.combinations(new_board, sequence[1:], (col, row))
+                col += 1
+            row += 1
+            col = 0
 
-    def board_inverse_y(self):
-        """ Get board reversed in Y axis """
-        self.board = self.board[::-1]
+        if sequence:
+            return False
 
-    def board_inverse_flipped(self):
-        """ Get board reversed for both axis """
-        self.board = [_[::-1] for _ in self.board[::-1]]
+        # if pos_x == self.ext_x:
+        #     return self.combinations(sequence, (0, pos_y + 1)) # Jump to next row
+        # if pos_y == self.ext_y:
+        #     if not sum(self.board[0]): # Verify if the first row was searched.
+        #         pass
+        #         # print(sum(self.board[0]),pos_x,pos_y % self.ext_y)
+        #         # return self.combinations(sequence, (pos_x, pos_y % self.ext_y))
+        #     else:
+        #         return len(sequence) == 0 # Can't found any valid configuration
+        # else:
+        #     piece = sequence[0]
+        #     if not self.board[pos_y][pos_x]:
+        #         if not piece.check_adj(self.prepare_boundaries(pos_x, pos_y),
+        #                                self.board, pos_x, pos_y):
+        #             self.insert_piece(piece, pos_x, pos_y)
+        #             sequence = sequence[1:]
+            # return self.combinations(sequence, (pos_x + 1, pos_y)) # Next
+
+    # def inverse_board_x(self):
+    #     """ Get board reversed in X axis """
+    #     self.board = [_[::-1] for _ in self.board]
+    #
+    # def board_inverse_y(self):
+    #     """ Get board reversed in Y axis """
+    #     self.board = self.board[::-1]
+    #
+    # def board_inverse_flipped(self):
+    #     """ Get board reversed for both axis """
+    #     self.board = [_[::-1] for _ in self.board[::-1]]
+    #
 
     def __str__(self):
-        """
+        """ Class string representation function """
+        boards_str = []
+        for brd in self.boards:
+            boards_str.append(board_str(brd))
+        return boards_str
 
-        String representation of the board. Unicode character for the piece,
-        1 for threat zone and 0 for empty zone.
+def board_str(board):
+    """
 
-        """
-        mat = ''
-        for row in self.board:
-            for squ in row:
-                if squ > 1:
-                    mat += '%s ' % chr(squ)
-                else:
-                    mat += '. '
-            mat += '\n'
-        return mat
+    String representation of the board. Unicode character for the piece,
+    1 for threat zone and 0 for empty zone.
+
+    """
+    mat = ''
+    for row in board:
+        for squ in row:
+            if squ > 1:
+                mat += '%s ' % chr(squ)
+            else:
+                mat += '. '
+        mat += '\n'
+    return mat
 
 def basic_sequence(piece_dict):
     """
