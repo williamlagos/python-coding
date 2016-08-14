@@ -27,6 +27,7 @@ def main():
     # Configures the argument parser for the input
     parser = argparse.ArgumentParser(
         description="Find unique configurations of a M x N chessboard.")
+    parser.add_argument('-v', action='store_true', default=False, help="Verbose mode. Prints when founds a valid config")
     parser.add_argument('-m', type=int, default=0, help="Number of horizontal rows")
     parser.add_argument('-n', type=int, default=0, help="Number of vertical columns")
     parser.add_argument('-K', type=int, default=0, help="King piece quantity, default is 0")
@@ -40,7 +41,7 @@ def main():
     # Verify if there is a valid size for the chessboard
     if args.m < 3 or args.n < 3:
         sys.exit("Invalid size for the board, it must be 3 x 3 or bigger.")
-    row, col = pieces.pop('m'), pieces.pop('n')
+    row, col, verbose = pieces.pop('m'), pieces.pop('n'), pieces.pop('v')
 
     # Verify if there is any piece to test with
     quantity = args.K + args.Q + args.R + args.B + args.N
@@ -64,11 +65,12 @@ def main():
     for seq in permutations:
         sequence = board.piece_sequence(seq)
         config = board.Board()
-        config.combinations(matrix, sequence, (0, 0))
+        config.combinations(matrix, sequence, (0, 0), verbose)
         configurations.extend(config.boards)
 
-    for cfg in configurations:
-        print(board.board_str(cfg))
+    if not verbose:
+        for cfg in configurations:
+            print(board.board_str(cfg))
 
     elapsed = timeit.default_timer() - start
     print("Number of permutations: %d" % len(permutations))

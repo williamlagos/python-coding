@@ -21,60 +21,6 @@ class Board(object):
     def __init__(self):
         self.boards = []
 
-    def prepare_boundaries(self, board, pos_x, pos_y):
-        """
-
-        Verify the boundaries of the square that the
-        piece will be put.
-
-        Keyword arguments:
-
-        board -- The chessboard matrix with integer codes
-        pos_x -- X position on the chessboard to put the piece
-        pos_y -- Y position on the chessboard to put the piece
-
-        """
-
-        ext_x, ext_y = (len(board[0]) - 1, len(board) - 1)
-
-        # Boundaries relation
-        # N  E  S  W  NE SE SW NW
-        # 0  1  2  3  4  5  6  7
-        boundaries = [0, 1, 2, 3, 4, 5, 6, 7]
-        # It doesn't need to verify the upper or down directions if we are on extremity
-
-        if pos_x == 0:
-            # Corner upper left
-            if pos_y == 0:
-                boundaries = [1, 2, 5]
-            # Corner down left
-            elif pos_y == ext_y:
-                boundaries = [0, 1, 4]
-            # Between corners left
-            else:
-                boundaries = [0, 1, 2, 4, 5]
-        elif pos_x == ext_x:
-            # Corner upper right
-            if pos_y == 0:
-                boundaries = [2, 3, 6]
-            # Corner down right
-            elif pos_y == ext_y:
-                boundaries = [0, 3, 7]
-            # Between corners right
-            else:
-                boundaries = [0, 2, 3, 6, 7]
-        elif pos_y == 0:
-            # Upper between corners
-            boundaries = [1, 2, 3, 5, 6]
-        elif pos_y == ext_y:
-            # Down between corners
-            boundaries = [0, 1, 3, 4, 7]
-
-        # If the square is in the middle, all the vertical adjacencies will be checked
-        logging.debug("Verified existing boundaries on board: %s", boundaries)
-
-        return boundaries
-
     def insert_piece(self, board, piece, pos_x, pos_y):
         """
 
@@ -107,118 +53,47 @@ class Board(object):
         logging.debug("Board after insertion of %s in (%d, %d): %s",
                       piece.letter, pos_x, pos_y, board)
 
-    def insert(self, piece):
-        """
-
-        Inserts a piece on the board. Verify adjacencies and boundaries with
-        pieces classes and, if there is a valid position, the function proceed
-        to piece insertion, in unicode character.
-
-        Keyword arguments:
-
-        piece -- Given piece instance with its properties
-
-        """
-        # for pos_y, row in enumerate(self.board):
-        #     for pos_x, square in enumerate(row):
-        #         # Verify if the position has threat or piece placed
-        #         logging.debug("Starting to check piece %s in position (%d,%d)",
-        #                       piece, pos_x, pos_y)
-        #         if square != 0:
-        #             continue
-        #
-        #         boundaries = self.prepare_boundaries(pos_x, pos_y)
-        #         # Verify if the adjacencies of the position are available
-        #         if piece.check_adj(boundaries, self.board, pos_x, pos_y):
-        #             logging.info("Found threat zone, skipping this position")
-        #             continue
-        #         else:
-        #             logging.debug("Putting piece %s on board", piece)
-        #             self.insert_piece(piece, pos_x, pos_y)
-        #             return True
-        # # Didn't found a suitable position for the piece on board
-        # return False
-
-    def unique_configuration(self, sequence):
+    def combinations(self, board, sequence, position, verbose):
         """
 
         Search for a unique configuration for a given
         sequence of pieces on a chessboard with given
-        dimensions.
+        dimensions. Recursive call for board matrix
+        using recursive algorithm.
 
         Keyword arguments:
-
-        sequence -- A permutated sequence of pieces
         board -- The chessboard matrix with integer codes
+        sequence -- A permutated sequence of pieces
+        position -- The position tuple (X,Y) of matrix to be started
 
         """
-
-        pieces_inserted = 0
-        # Verify if there is more piece to put in the board
-        logging.debug("Working with sequence %s", sequence)
-        chess_pieces = pieces.PieceFactory.generate_pieces(sequence)
-        for piece in chess_pieces:
-            logging.debug("Preparing for unique configuration for %s piece", piece)
-            if self.insert(piece):
-                pieces_inserted += 1
-        # Verify if all the pieces were placed on chessboard
-        return pieces_inserted == len(sequence)
-
-    def combinations(self, board, sequence, position):
-        """ Recursive call for board matrix using backtrack algorithm. """
+        # Verify if all pieces were placed
         if not sequence:
             self.boards.append(board)
-            # print(board_str(board))
+            if verbose:
+                print(board_str(board))
             return True
 
         piece = sequence[0]
         col, row = position
         while row < len(board):
             while col < len(board[0]):
-                boundaries = self.prepare_boundaries(board, col, row)
-                # Verify if the adjacencies of the position are available
+                # Verify if the position is available for insertion
                 if board[row][col] == 0:
+                    boundaries = prepare_boundaries(board, col, row)
+                    # Verify if the adjacencies of the position are available
                     if not piece.check_adj(boundaries, board, col, row):
+                        # Prepares for a new try with the remaining pieces
                         new_board = [r[:] for r in board]
                         self.insert_piece(new_board, piece, col, row)
-                        self.combinations(new_board, sequence[1:], (col, row))
+                        self.combinations(new_board, sequence[1:], (col, row), verbose)
                 col += 1
             row += 1
             col = 0
 
+        # If there any pieces that weren't placed, return false
         if sequence:
             return False
-
-        # if pos_x == self.ext_x:
-        #     return self.combinations(sequence, (0, pos_y + 1)) # Jump to next row
-        # if pos_y == self.ext_y:
-        #     if not sum(self.board[0]): # Verify if the first row was searched.
-        #         pass
-        #         # print(sum(self.board[0]),pos_x,pos_y % self.ext_y)
-        #         # return self.combinations(sequence, (pos_x, pos_y % self.ext_y))
-        #     else:
-        #         return len(sequence) == 0 # Can't found any valid configuration
-        # else:
-        #     piece = sequence[0]
-        #     if not self.board[pos_y][pos_x]:
-        #         if not piece.check_adj(self.prepare_boundaries(pos_x, pos_y),
-        #                                self.board, pos_x, pos_y):
-        #             self.insert_piece(piece, pos_x, pos_y)
-        #             sequence = sequence[1:]
-            # return self.combinations(sequence, (pos_x + 1, pos_y)) # Next
-
-    # def inverse_board_x(self):
-    #     """ Get board reversed in X axis """
-    #     self.board = [_[::-1] for _ in self.board]
-    #
-    # def board_inverse_y(self):
-    #     """ Get board reversed in Y axis """
-    #     self.board = self.board[::-1]
-    #
-    # def board_inverse_flipped(self):
-    #     """ Get board reversed for both axis """
-    #     self.board = [_[::-1] for _ in self.board[::-1]]
-    #
 
     def __str__(self):
         """ Class string representation function """
@@ -226,6 +101,60 @@ class Board(object):
         for brd in self.boards:
             boards_str.append(board_str(brd))
         return boards_str
+
+def prepare_boundaries(board, pos_x, pos_y):
+    """
+
+    Verify the boundaries of the square that the
+    piece will be put.
+
+    Keyword arguments:
+
+    board -- The chessboard matrix with integer codes
+    pos_x -- X position on the chessboard to put the piece
+    pos_y -- Y position on the chessboard to put the piece
+
+    """
+
+    ext_x, ext_y = (len(board[0]) - 1, len(board) - 1)
+
+    # Boundaries relation
+    # N  E  S  W  NE SE SW NW
+    # 0  1  2  3  4  5  6  7
+    boundaries = [0, 1, 2, 3, 4, 5, 6, 7]
+    # It doesn't need to verify the upper or down directions if we are on extremity
+
+    if pos_x == 0:
+        # Corner upper left
+        if pos_y == 0:
+            boundaries = [1, 2, 5]
+        # Corner down left
+        elif pos_y == ext_y:
+            boundaries = [0, 1, 4]
+        # Between corners left
+        else:
+            boundaries = [0, 1, 2, 4, 5]
+    elif pos_x == ext_x:
+        # Corner upper right
+        if pos_y == 0:
+            boundaries = [2, 3, 6]
+        # Corner down right
+        elif pos_y == ext_y:
+            boundaries = [0, 3, 7]
+        # Between corners right
+        else:
+            boundaries = [0, 2, 3, 6, 7]
+    elif pos_y == 0:
+        # Upper between corners
+        boundaries = [1, 2, 3, 5, 6]
+    elif pos_y == ext_y:
+        # Down between corners
+        boundaries = [0, 1, 3, 4, 7]
+
+    # If the square is in the middle, all the vertical adjacencies will be checked
+    logging.debug("Verified existing boundaries on board: %s", boundaries)
+
+    return boundaries
 
 def board_str(board):
     """
