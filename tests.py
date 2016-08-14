@@ -64,36 +64,33 @@ class BoardApplicationTest(unittest.TestCase):
         """ Tests chessboard piece insertion """
         result = [[0] * 3 for _ in itertools.repeat(None, 3)]
         matrix = [[75, 1, 0], [1, 1, 0], [0, 0, 0]]
-        brd_obj = board.Board()
         piece = pieces.PieceFactory.generate_piece('K')
         boundaries = board.prepare_boundaries(result, 0, 0)
         piece.check_adj(boundaries, result, 0, 0)
-        brd_obj.insert_piece(result, piece, 0, 0)
+        board.insert_piece(result, piece, 0, 0)
         self.assertEqual(matrix, result)
 
     def test_multiple_insert(self):
         """ Tests chessboard multiple piece insertion """
         result = [[0] * 3 for _ in itertools.repeat(None, 3)]
         matrix = [[75, 1, 75], [1, 1, 1], [0, 0, 0]]
-        brd_obj = board.Board()
         king1 = pieces.PieceFactory.generate_piece('K')
         king2 = pieces.PieceFactory.generate_piece('K')
         boundaries = board.prepare_boundaries(result, 0, 0)
         king1.check_adj(boundaries, result, 0, 0)
-        brd_obj.insert_piece(result, king1, 0, 0)
+        board.insert_piece(result, king1, 0, 0)
         boundaries = board.prepare_boundaries(result, 2, 0)
         king2.check_adj(boundaries, result, 2, 0)
-        brd_obj.insert_piece(result, king2, 2, 0)
+        board.insert_piece(result, king2, 2, 0)
         self.assertEqual(matrix, result)
 
     def test_unique_configuration(self):
         """ Test one-time execution of unique_configuration """
         matrix = [[0] * 3 for _ in itertools.repeat(None, 3)]
         expected_matrix = [[75, 1, 75], [1, 1, 1], [1, 82, 1]]
-        brd_obj = board.Board()
         sequence = pieces.PieceFactory.generate_pieces(('K', 'K', 'R'))
-        brd_obj.combinations(matrix, sequence, (0, 0), False)
-        result = brd_obj.boards[0]
+        board.combinations(matrix, sequence, (0, 0), False)
+        result = board.boards[0]
         self.assertEqual(expected_matrix, result)
 
 class PiecesApplicationTest(unittest.TestCase):
@@ -133,17 +130,16 @@ class PiecesApplicationTest(unittest.TestCase):
         """ Tests check_adj between multiple insertion"""
         result = [[0] * 3 for _ in itertools.repeat(None, 3)]
         matrix = [[75, 1, 75], [1, 1, 1], [0, 0, 0]]
-        brd_obj = board.Board()
         king1 = pieces.PieceFactory.generate_piece('K')
         king2 = pieces.PieceFactory.generate_piece('K')
         boundaries = board.prepare_boundaries(result, 0, 0)
         res1 = king1.check_adj(boundaries, result, 0, 0)
         self.assertFalse(res1)
-        brd_obj.insert_piece(result, king1, 0, 0)
+        board.insert_piece(result, king1, 0, 0)
         boundaries = board.prepare_boundaries(result, 2, 0)
         res2 = king2.check_adj(boundaries, result, 2, 0)
         self.assertFalse(res2)
-        brd_obj.insert_piece(result, king2, 2, 0)
+        board.insert_piece(result, king2, 2, 0)
         self.assertEqual(matrix, result)
 
 if __name__ == '__main__':

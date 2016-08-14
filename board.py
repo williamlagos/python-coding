@@ -10,97 +10,91 @@ import logging
 import itertools
 import pieces
 
-class Board(object):
+boards = []
+# 0 - free to use
+# 1 - threat zone
+# Unicode - piece placed
+FREE, THREAT = [x for x in range(2)]
+
+def insert_piece(board, piece, pos_x, pos_y):
     """
-    Board class
+
+    Put the given piece in the board with its adjacencies included.
+
+    Keyword arguments:
+
+    piece -- Piece object that will be inserted
+    board -- Main matrix chessboard to be manipulated
+    x -- X position of the given piece
+    y -- Y position of the given piece
+
     """
-    # 0 - free to use
-    # 1 - threat zone
-    # Unicode - piece placed
-    FREE, THREAT = [x for x in range(2)]
-    def __init__(self):
-        self.boards = []
+    logging.debug("Board before insertion of %s in (%d, %d): %s",
+                  piece.letter, pos_x, pos_y, board)
+    # Put the piece with the unicode representation on board
+    board[pos_y][pos_x] = ord(str(piece))
 
-    def insert_piece(self, board, piece, pos_x, pos_y):
-        """
+    logging.debug("List of adjacencies of %s for (%d, %d): %s",
+                  piece.letter, pos_x, pos_y, piece.adjacencies)
+    # Insert all the adjacencies related to the piece
+    for _, adj in piece.adjacencies.items():
+        if isinstance(adj, list):
+            for adj_t in adj:
+                adj_x, adj_y = adj_t
+                board[adj_y][adj_x] = THREAT
+        else:
+            adj_x, adj_y = adj
+            board[adj_y][adj_x] = THREAT
+    logging.debug("Board after insertion of %s in (%d, %d): %s",
+                  piece.letter, pos_x, pos_y, board)
 
-        Put the given piece in the board with its adjacencies included.
+def combinations(board, sequence, position, verbose):
+    """
 
-        Keyword arguments:
+    Search for a unique configuration for a given
+    sequence of pieces on a chessboard with given
+    dimensions. Recursive call for board matrix
+    using recursive algorithm.
 
-        piece -- Piece object that will be inserted
-        board -- Main matrix chessboard to be manipulated
-        x -- X position of the given piece
-        y -- Y position of the given piece
+    Keyword arguments:
+    board -- The chessboard matrix with integer codes
+    sequence -- A permutated sequence of pieces
+    position -- The position tuple (X,Y) of matrix to be started
 
-        """
-        logging.debug("Board before insertion of %s in (%d, %d): %s",
-                      piece.letter, pos_x, pos_y, board)
-        # Put the piece with the unicode representation on board
-        board[pos_y][pos_x] = ord(str(piece))
+    """
+    # Verify if all pieces were placed
+    if not sequence:
+        boards.append(board)
+        if verbose:
+            print(board_str(board))
+        del board[:]
+        del board
+        return True
 
-        logging.debug("List of adjacencies of %s for (%d, %d): %s",
-                      piece.letter, pos_x, pos_y, piece.adjacencies)
-        # Insert all the adjacencies related to the piece
-        for _, adj in piece.adjacencies.items():
-            if isinstance(adj, list):
-                for adj_t in adj:
-                    adj_x, adj_y = adj_t
-                    board[adj_y][adj_x] = self.THREAT
-            else:
-                adj_x, adj_y = adj
-                board[adj_y][adj_x] = self.THREAT
-        logging.debug("Board after insertion of %s in (%d, %d): %s",
-                      piece.letter, pos_x, pos_y, board)
+    piece = sequence[0]
+    col, row = position
+    while row < len(board):
+        while col < len(board[0]):
+            # Verify if the position is available for insertion
+            if board[row][col] == 0:
+                boundaries = prepare_boundaries(board, col, row)
+                # Verify if the adjacencies of the position are available
+                if not piece.check_adj(boundaries, board, col, row):
+                    # Prepares for a new try with the remaining pieces
+                    new_board = [r[:] for r in board]
+                    insert_piece(new_board, piece, col, row)
+                    combinations(new_board, sequence[1:], (col, row), verbose)
+                    del new_board[:]
+                    del new_board
+            col += 1
+        row += 1
+        col = 0
 
-    def combinations(self, board, sequence, position, verbose):
-        """
-
-        Search for a unique configuration for a given
-        sequence of pieces on a chessboard with given
-        dimensions. Recursive call for board matrix
-        using recursive algorithm.
-
-        Keyword arguments:
-        board -- The chessboard matrix with integer codes
-        sequence -- A permutated sequence of pieces
-        position -- The position tuple (X,Y) of matrix to be started
-
-        """
-        # Verify if all pieces were placed
-        if not sequence:
-            self.boards.append(board)
-            if verbose:
-                print(board_str(board))
-            return True
-
-        piece = sequence[0]
-        col, row = position
-        while row < len(board):
-            while col < len(board[0]):
-                # Verify if the position is available for insertion
-                if board[row][col] == 0:
-                    boundaries = prepare_boundaries(board, col, row)
-                    # Verify if the adjacencies of the position are available
-                    if not piece.check_adj(boundaries, board, col, row):
-                        # Prepares for a new try with the remaining pieces
-                        new_board = [r[:] for r in board]
-                        self.insert_piece(new_board, piece, col, row)
-                        self.combinations(new_board, sequence[1:], (col, row), verbose)
-                col += 1
-            row += 1
-            col = 0
-
-        # If there any pieces that weren't placed, return false
-        if sequence:
-            return False
-
-    def __str__(self):
-        """ Class string representation function """
-        boards_str = []
-        for brd in self.boards:
-            boards_str.append(board_str(brd))
-        return boards_str
+    # If there any pieces that weren't placed, return false
+    if sequence:
+        del sequence[:]
+        del sequence
+        return False
 
 def prepare_boundaries(board, pos_x, pos_y):
     """

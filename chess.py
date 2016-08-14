@@ -27,7 +27,8 @@ def main():
     # Configures the argument parser for the input
     parser = argparse.ArgumentParser(
         description="Find unique configurations of a M x N chessboard.")
-    parser.add_argument('-v', action='store_true', default=False, help="Verbose mode. Prints when founds a valid config")
+    parser.add_argument('-v', action='store_true', default=False,
+                        help="Verbose mode. Prints when founds a valid config")
     parser.add_argument('-m', type=int, default=0, help="Number of horizontal rows")
     parser.add_argument('-n', type=int, default=0, help="Number of vertical columns")
     parser.add_argument('-K', type=int, default=0, help="King piece quantity, default is 0")
@@ -64,9 +65,8 @@ def main():
     matrix = [[0] * col for _ in itertools.repeat(None, row)]
     for seq in permutations:
         sequence = board.piece_sequence(seq)
-        config = board.Board()
-        config.combinations(matrix, sequence, (0, 0), verbose)
-        configurations.extend(config.boards)
+        board.combinations(matrix, sequence, (0, 0), verbose)
+    configurations.extend(board.boards)
 
     if not verbose:
         for cfg in configurations:
