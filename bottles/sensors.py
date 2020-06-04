@@ -1,19 +1,19 @@
 from threading import Thread,Semaphore
 from time import sleep
-from valves import *
-
 from logging import log,INFO
 from logging import basicConfig as start_log
+
+# from valves import *
 
 start_log(filename='messages.log',level=INFO)
 
 def info(message):
 	log(INFO,message)
-	print message
-	print '\nValvula Volume: %i' % valve_vol
-	print '\nValvula Peso: %i' % valve_wei
-	print '\nValvula Acido: %i' % valve_pha
-	print '\nTrava de garrafa: %i' % bottle_lk
+	print(message)
+	print('\nValvula Volume: %i' % valve_vol)
+	print('\nValvula Peso: %i' % valve_wei)
+	print('\nValvula Acido: %i' % valve_pha)
+	print('\nTrava de garrafa: %i' % bottle_lk)
 
 valve_vol = False
 valve_wei = False
