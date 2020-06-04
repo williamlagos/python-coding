@@ -55,12 +55,12 @@ class Graph:
          * Mostra as arestas do grafo.
          * 
         """
-        print self.max - 1
+        print(self.max - 1)
         i = 1; j = 1
         while(i < self.max):
             while(j < self.max):
                 if self.matadj[i][j] != 0: 
-                    print "%d %d\n" % (i,j)
+                    print("%d %d\n" % (i,j))
                 i += 1; j += 1
 
     def clear_visited(self):
@@ -100,7 +100,7 @@ class Graph:
         q = deque([]); q.append(node)
         visits = []; visits.append(node)
         self.marked[node] = True
-        while(len(q) is not 0):
+        while(len(q) != 0):
             n = q.popleft()
             for m in self.adjacents(n):
                 if m not in self.marked:
@@ -148,7 +148,7 @@ class Graph:
         s.append(node)
         visits.append(node)
         self.marked[node] = True
-        while(len(s) is not 0):
+        while(len(s) != 0):
             n = s.pop()
             for m in self.adjacents(n):
                 if m not in self.marked:
@@ -249,7 +249,7 @@ class Graph:
             changed = False
             for i in range(candidate.size()):
                 c = candidate[i]
-                if cpy.entry_grade(c) is 0:
+                if cpy.entry_grade(c) == 0:
                     changed = True
                     l.append(c)
                     cpy.remove_edge(c)
