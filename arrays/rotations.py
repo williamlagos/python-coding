@@ -8,7 +8,7 @@ import sys
 
 # Complete the rotLeft function below.
 def rotLeft(a, d):
-    pass
+    return 0
 
 if __name__ == '__main__':
     fptr = open(os.environ['OUTPUT_PATH'], 'w')
