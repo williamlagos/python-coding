@@ -8,6 +8,7 @@ import sys
 
 # Complete the rotLeft function below.
 def rotLeft(a, d):
+    # TODO: Constraints check
     return 0
 
 if __name__ == '__main__':
