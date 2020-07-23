@@ -12,7 +12,7 @@ def rotLeft(a, d):
     return 0
 
 if __name__ == '__main__':
-    fptr = open(os.environ['OUTPUT_PATH'], 'w')
+    fptr = open('./output.txt' if 'OUTPUT_PATH' not in os.environ else os.environ['OUTPUT_PATH'], 'w')
     nd = input().split()
     n = int(nd[0])
     d = int(nd[1])
