@@ -8,8 +8,13 @@ import sys
 
 # Complete the rotLeft function below.
 def rotLeft(a, d):
-    # TODO: Constraints check
-    return 0
+    # Constraints check
+    array = []
+    array_size = len(a)
+    if d < array_size or d < 1:
+        return array
+    
+    return array
 
 if __name__ == '__main__':
     fptr = open('./output.txt' if 'OUTPUT_PATH' not in os.environ else os.environ['OUTPUT_PATH'], 'w')
