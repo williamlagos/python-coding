@@ -11,9 +11,11 @@ def rotLeft(a, d):
     # Constraints check
     array = []
     array_size = len(a)
-    if d < array_size or d < 1:
+    if d > array_size or d < 1:
         return array
     
+    # Rotation procedure
+    array = a[d:] + a[:d]
     return array
 
 if __name__ == '__main__':
