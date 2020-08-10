@@ -8,7 +8,10 @@ import sys
 
 # Complete the aVeryBigSum function below.
 def aVeryBigSum(ar):
-    pass
+    big_sum = 0
+    for a in ar:
+        big_sum += a
+    return big_sum
 
 if __name__ == '__main__':
     fptr = open(os.environ['OUTPUT_PATH'], 'w')
