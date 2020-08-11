@@ -8,7 +8,13 @@ import sys
 
 # Complete the roadsAndLibraries function below.
 def roadsAndLibraries(n, c_lib, c_road, cities):
-    pass
+    min_cost = 0
+    # Check if the cost of building a library is cheaper than a road
+    if c_lib < c_road:
+        min_cost = m * c_lib
+    # Else, prepare the graph algorithm
+    
+    return min_cost
 
 if __name__ == '__main__':
     fptr = open(os.environ['OUTPUT_PATH'], 'w')
