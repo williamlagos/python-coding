@@ -75,7 +75,7 @@ def depthFirstTraverse(town, visited, roads, path):
     # Dead end, if nothing was found to connect to, create a single path
 
 # Complete the roadsAndLibraries function below.
-def roadsAndLibraries(n, c_lib, c_road, cities):
+def roadsAndLibraries_imp2(n, c_lib, c_road, cities):
     min_cost = 0
     # Check if the cost of building a library is cheaper than a road
     if c_lib <= c_road:
@@ -122,6 +122,58 @@ def roadsAndLibraries(n, c_lib, c_road, cities):
         min_cost = num_roads + num_librs
     
     return min_cost
+
+def dft(i, count, roads, visited):
+    visited[i] = True
+    count += 1
+    print(count)
+    for road in roads[i]:
+        if not visited[road]:
+            dft(road, count, roads, visited)
+
+
+# Complete the roadsAndLibraries function below.
+def roadsAndLibraries(n, c_lib, c_road, cities):
+    i = 1
+    cost = 0
+    # visited = [False for _ in range(n)]
+    roads = {}
+    for city in cities:
+        # Check for empty city areas, then create, or append:
+        x, y = city
+        if x not in roads:
+            roads[x] = {y}
+        else:
+            roads[x].add(y)
+        if y not in roads:
+            roads[y] = {x}
+        else:
+            roads[y].add(x)
+
+    # Check if there is any isolated city
+    towns = set(roads.keys())
+    if len(towns) < n:
+        isolated_towns = set(range(1, n + 1)).difference(towns)
+        isolated_roads = {town: set() for town in isolated_towns}
+        roads = {**roads, **isolated_roads}
+        towns = towns.union(isolated_towns)
+
+    visited = { town: False for town in towns }
+
+    # paths = []   
+    # print(roads)
+    # print(visited)
+    while i < len(roads):
+        if not visited[i]:
+            count = 0
+            dft(i, count, roads, visited)
+            if c_lib > c_road:
+                print(count)
+                cost += c_lib + (c_road * (count - 1))
+            else:
+                cost += c_lib * count
+        i += 1
+    return cost
 
 if __name__ == '__main__':
     fptr = open(os.environ['OUTPUT_PATH'], 'w')
