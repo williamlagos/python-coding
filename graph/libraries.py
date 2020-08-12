@@ -7,7 +7,7 @@ import re
 import sys
 
 # Complete the roadsAndLibraries function below.
-def roadsAndLibraries(n, c_lib, c_road, cities):
+def roadsAndLibraries_imp1(n, c_lib, c_road, cities):
     min_cost = 0
     # Check if the cost of building a library is cheaper than a road
     if c_lib <= c_road:
@@ -63,6 +63,97 @@ def roadsAndLibraries(n, c_lib, c_road, cities):
         num_librs = c_lib * len(unique_areas) + isolated_cities
 
         min_cost = num_roads + num_librs
+    
+    return min_cost
+
+# Complete the roadsAndLibraries function below.
+def roadsAndLibraries(n, c_lib, c_road, cities):
+    min_cost = 0
+    # Check if the cost of building a library is cheaper than a road
+    if c_lib <= c_road:
+        min_cost = n * c_lib
+    else:
+        # Else, prepare the graph algorithm
+        roads = {}
+        for city in cities:
+            # Check for empty city areas, then create, or append:
+            x, y = city
+            if x not in roads:
+                roads[x] = {y}
+            else:
+                roads[x].add(y)
+            if y not in roads:
+                roads[y] = {x}
+            else:
+                roads[y].add(y)
+
+        # Check if there is any isolated city
+        # isolated_cities = c_lib * (n - num_cities)
+        # num_librs = c_lib * len(unique_areas) + isolated_cities
+        towns = set(roads.keys())
+        if len(towns) < n:
+            isolated_towns = set(range(1, n + 1)).difference(towns)
+            isolated_roads = {town: set() for town in isolated_towns}
+            roads = {**roads, **isolated_roads}
+            towns = towns.union(isolated_towns)
+
+        print(roads)
+        print(towns)
+        print(n)
+        paths = []
+        while towns:
+            town = towns.pop()
+            path = [town]
+            path_finished = False
+            while not path_finished:
+                next_t = roads[town].pop()
+                path.append(next_t)
+                towns.remove(next_t)
+                if next_t in towns:
+                    town = next_t
+                else:
+                    path_finished = True
+            paths.append(path)
+        print(paths)
+        #         i_areas = 0
+        #         while i_areas < len(c_areas):
+        #             # Check for any difference by intersection on all areas
+        #             points = set(city).difference(c_areas[i_areas])
+        #             if len(points) == 1:
+        #                 # If there is one intersection, add to its set
+        #                 c_areas[i_areas] = c_areas[i_areas].union(points)
+        #                 break
+        #             elif len(points) == 2:
+        #                 # If not, create another set 
+        #                 c_areas.append(set(city))
+        #                 break
+        #             else:
+        #                 i_areas += 1
+
+        # unique_areas = []
+        # # Make areas unique checking each other
+        # for area in c_areas:
+        #     count = 0
+        #     while count < len(c_areas):
+        #         if len(set(area).difference(c_areas[count])) == 1:
+        #             unique_areas.append(area.union(c_areas[count]))
+        #         count += 1
+        
+        # # If there isn't any changes to make, reattribute the original country areas
+        # if not unique_areas:
+        #     unique_areas = c_areas
+
+        # # Do the math with the minimum number of roads and libraries
+        # num_roads = 0
+        # num_cities = 0
+        # for area in unique_areas:
+        #     num_cities += len(area)
+        #     num_roads += (len(area) - 1) * c_road
+
+        # print(unique_areas)
+        # print(c_areas)
+
+        # min_cost = num_roads + num_librs
     
     return min_cost
 
