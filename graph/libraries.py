@@ -6,6 +6,8 @@ import random
 import re
 import sys
 
+from collections import deque, defaultdict
+
 # Complete the roadsAndLibraries function below.
 def roadsAndLibraries_imp1(n, c_lib, c_road, cities):
     min_cost = 0
@@ -123,57 +125,69 @@ def roadsAndLibraries_imp2(n, c_lib, c_road, cities):
     
     return min_cost
 
-def dft(i, count, roads, visited):
-    visited[i] = True
-    count += 1
-    print(count)
-    for road in roads[i]:
-        if not visited[road]:
-            dft(road, count, roads, visited)
-
 
 # Complete the roadsAndLibraries function below.
 def roadsAndLibraries(n, c_lib, c_road, cities):
-    i = 1
-    cost = 0
-    # visited = [False for _ in range(n)]
-    roads = {}
+    if c_lib <= c_road:
+        return c_lib * n
+
+    roads = defaultdict(set)
     for city in cities:
         # Check for empty city areas, then create, or append:
         x, y = city
-        if x not in roads:
-            roads[x] = {y}
-        else:
-            roads[x].add(y)
-        if y not in roads:
-            roads[y] = {x}
-        else:
-            roads[y].add(x)
+        roads[x].add(y)
+        roads[y].add(x)
 
     # Check if there is any isolated city
-    towns = set(roads.keys())
-    if len(towns) < n:
-        isolated_towns = set(range(1, n + 1)).difference(towns)
-        isolated_roads = {town: set() for town in isolated_towns}
-        roads = {**roads, **isolated_roads}
-        towns = towns.union(isolated_towns)
+    # towns = set(roads.keys())
+    # if len(towns) < n:
+    #     isolated_towns = set(range(1, n + 1)).difference(towns)
+    #     isolated_roads = {town: set() for town in isolated_towns}
+    #     roads = {**roads, **isolated_roads}
+    #     towns = towns.union(isolated_towns)
+    towns = range(1, n + 1)
 
-    visited = { town: False for town in towns }
+    # visited = { town: False for town in towns }
+    n_areas = 0
+    visited = set()
+    area_sz = []
 
+    for town in towns:
+        if town in visited: continue
+        visited.add(town)
+
+        size = 1
+        queue = deque()
+        queue.appendleft(town)
+        while queue:
+            cur = queue.pop()
+            for neighbor in roads[cur]:
+                if neighbor in visited: continue
+                visited.add(neighbor)
+                queue.appendleft(neighbor)
+                size += 1
+        n_areas +=1
+        area_sz.append(size)
+    
+    # print(roads)
+    # print(towns)
+    # print(n_areas)
+    # print(area_sz)
     # paths = []   
     # print(roads)
     # print(visited)
-    while i < len(roads):
-        if not visited[i]:
-            count = 0
-            dft(i, count, roads, visited)
-            if c_lib > c_road:
-                print(count)
-                cost += c_lib + (c_road * (count - 1))
-            else:
-                cost += c_lib * count
-        i += 1
-    return cost
+    # while i < len(roads):
+    #     if not visited[i]:
+    #         count = 0
+    #         dft(i, count, roads, visited)
+    #         if c_lib > c_road:
+    #             print(count)
+    #             cost += c_lib + (c_road * (count - 1))
+    #         else:
+    #             cost += c_lib * count
+    #     i += 1
+    # return cost
+    return (n_areas * c_lib + sum((x - 1) * c_road for x in area_sz))
 
 if __name__ == '__main__':
     fptr = open(os.environ['OUTPUT_PATH'], 'w')
