@@ -8,7 +8,12 @@ import sys
 
 # Complete the minimumAbsoluteDifference function below.
 def minimumAbsoluteDifference(arr):
-    return 0
+    minimum = sys.maxsize
+    for i in range(len(arr)):
+        for j in range(i + 1, len(arr)):
+            res = abs(arr[i] - arr[j])
+            if res < minimum: minimum = res
+    return minimum
 
 if __name__ == '__main__':
     fptr = open(os.environ['OUTPUT_PATH'], 'w')
