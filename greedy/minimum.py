@@ -9,10 +9,11 @@ import sys
 # Complete the minimumAbsoluteDifference function below.
 def minimumAbsoluteDifference(arr):
     minimum = sys.maxsize
-    for i in range(len(arr)):
-        for j in range(i + 1, len(arr)):
-            res = abs(arr[i] - arr[j])
-            if res < minimum: minimum = res
+    arr.sort()
+    for i in range(1, len(arr)):
+        res = abs(arr[i - 1] - arr[i])
+        if res < minimum: minimum = res
+    # print(minimum)
     return minimum
 
 if __name__ == '__main__':
