@@ -5,14 +5,13 @@ import os
 import random
 import re
 import sys
+import collections
 
 # Complete the checkMagazine function below.
 def checkMagazine(magazine, note):
-    for word in magazine:
-        print(word)
-    for word in note:
-        print(word)
-    return 0
+    mgz_cnt = collections.Counter(magazine)
+    not_cnt = collections.Counter(note)
+    print('No') if len(not_cnt - mgz_cnt) > 0 else print('Yes')
 
 if __name__ == '__main__':
     mn = input().split()
