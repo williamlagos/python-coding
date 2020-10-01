@@ -6,25 +6,26 @@ import random
 import re
 import sys
 
-def powerSet(arr, itr):
-    print(arr)
-    if itr == 0:
-        return arr
-    else:
-        itr -= 1
-        powerSet(arr[1:], itr)
-
 # Complete the maxSubsetSum function below.
 def maxSubsetSum(arr):
-    return ''
+    including = 0
+    excluding = 0
+     
+    for item in arr: 
+        # Current max excluding item
+        new_excluding = excluding if excluding > including else including
+         
+        # Current max including item 
+        including = excluding + item 
+        excluding = new_excluding
+      
+    # return max of including and excluding
+    return (excluding if excluding > including else including) 
 
 if __name__ == '__main__':
-    powerSet([-2,1,3,-4,5],7)
-
-# if __name__ == '__main__':
-#     fptr = open(os.environ['OUTPUT_PATH'], 'w')
-#     n = int(input())
-#     arr = list(map(int, input().rstrip().split()))
-#     res = maxSubsetSum(arr)
-#     fptr.write(str(res) + '\n')
-#     fptr.close()
+    fptr = open(os.environ['OUTPUT_PATH'], 'w')
+    n = int(input())
+    arr = list(map(int, input().rstrip().split()))
+    res = maxSubsetSum(arr)
+    fptr.write(str(res) + '\n')
+    fptr.close()
