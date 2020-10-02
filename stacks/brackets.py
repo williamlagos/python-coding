@@ -20,7 +20,7 @@ def isBalanced(s):
             enc.append(c)
             enclosing = True
 
-        if enclosing:
+        if enclosing and len(opn) > 0 and len(enc) > 0:
             t = opn[-1:][0]
             if t == '{' and c == '}' or t == '[' and c == ']' or t == '(' and c == ')':
                 opn.pop()
