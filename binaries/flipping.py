@@ -8,7 +8,11 @@ import sys
 
 # Complete the flippingBits function below.
 def flippingBits(n):
-    return ''
+    l = n.bit_length()
+    bits = '1' * l if l > 0 else '0' * 1
+    bitmask = int(bits, 2)
+    return n ^ bitmask
+        
 
 if __name__ == '__main__':
     fptr = open(os.environ['OUTPUT_PATH'], 'w')
