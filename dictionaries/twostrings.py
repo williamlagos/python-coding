@@ -8,7 +8,7 @@ import sys
 
 # Complete the twoStrings function below.
 def twoStrings(s1, s2):
-    pass
+    return ''
 
 if __name__ == '__main__':
     fptr = open(os.environ['OUTPUT_PATH'], 'w')
