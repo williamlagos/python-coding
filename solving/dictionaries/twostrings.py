@@ -8,6 +8,7 @@ import sys
 
 # Complete the twoStrings function below.
 def twoStrings(s1, s2):
+    print('')
     return ''
 
 if __name__ == '__main__':
