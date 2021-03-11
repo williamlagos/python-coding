@@ -15,7 +15,11 @@ import sys
 
 def birthdayCakeCandles(candles):
     # Write your code here
-    return ''
+    tallest = 0
+    for candle in candles:
+        if candle > tallest:
+            tallest = candle
+    return candles.count(tallest)
 
 if __name__ == '__main__':
     fptr = open(os.environ['OUTPUT_PATH'], 'w')
